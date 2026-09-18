@@ -1,6 +1,7 @@
 package com.example.cheerschecklist
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,12 +11,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,11 +42,28 @@ fun App() {
     MaterialTheme {
         val viewModel: TastingViewModel = viewModel { TastingViewModel() }
         val entries by viewModel.entries.collectAsState()
+        val editingEntry by viewModel.editingEntry.collectAsState()
 
         var name by remember { mutableStateOf("") }
         var category by remember { mutableStateOf(DrinkCategory.WHISKY) }
         var rating by remember { mutableStateOf(0) }
         var notes by remember { mutableStateOf("") }
+        var pendingDelete by remember { mutableStateOf<TastedDrink?>(null) }
+
+        LaunchedEffect(editingEntry) {
+            val entry = editingEntry
+            if (entry != null) {
+                name = entry.name
+                category = entry.category
+                rating = entry.rating
+                notes = entry.notes
+            } else {
+                name = ""
+                category = DrinkCategory.WHISKY
+                rating = 0
+                notes = ""
+            }
+        }
 
         LazyColumn(
             modifier = Modifier
@@ -104,36 +125,80 @@ fun App() {
                         minLines = 2,
                     )
 
-                    Button(
-                        onClick = {
-                            viewModel.addEntry(
-                                name = name,
-                                category = category,
-                                dateTasted = Clock.System.todayIn(TimeZone.currentSystemDefault()),
-                                rating = rating,
-                                notes = notes,
-                            )
-                            name = ""
-                            rating = 0
-                            notes = ""
-                        },
-                        enabled = name.isNotBlank() && rating > 0,
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("Add")
+                        if (editingEntry != null) {
+                            TextButton(onClick = { viewModel.cancelEditing() }) {
+                                Text("Cancel")
+                            }
+                        }
+                        Button(
+                            onClick = {
+                                viewModel.saveEntry(
+                                    name = name,
+                                    category = category,
+                                    dateTasted = Clock.System.todayIn(TimeZone.currentSystemDefault()),
+                                    rating = rating,
+                                    notes = notes,
+                                )
+                                name = ""
+                                rating = 0
+                                notes = ""
+                            },
+                            enabled = name.isNotBlank() && rating > 0,
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(if (editingEntry != null) "Save" else "Add")
+                        }
                     }
                 }
             }
 
             items(entries) { entry ->
-                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text("${entry.name} (${entry.category.name})", style = MaterialTheme.typography.titleMedium)
-                    Text("${entry.dateTasted} · ${entry.rating}/5", style = MaterialTheme.typography.bodySmall)
-                    if (entry.notes.isNotBlank()) {
-                        Text(entry.notes, style = MaterialTheme.typography.bodyMedium)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { viewModel.startEditing(entry) },
+                    ) {
+                        Text("${entry.name} (${entry.category.name})", style = MaterialTheme.typography.titleMedium)
+                        Text("${entry.dateTasted} · ${entry.rating}/5", style = MaterialTheme.typography.bodySmall)
+                        if (entry.notes.isNotBlank()) {
+                            Text(entry.notes, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    TextButton(onClick = { pendingDelete = entry }) {
+                        Text("Delete")
                     }
                 }
             }
+        }
+
+        val toDelete = pendingDelete
+        if (toDelete != null) {
+            AlertDialog(
+                onDismissRequest = { pendingDelete = null },
+                title = { Text("Delete entry?") },
+                text = { Text("Delete \"${toDelete.name}\"? This can't be undone.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.deleteEntry(toDelete)
+                        pendingDelete = null
+                    }) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingDelete = null }) {
+                        Text("Cancel")
+                    }
+                },
+            )
         }
     }
 }
