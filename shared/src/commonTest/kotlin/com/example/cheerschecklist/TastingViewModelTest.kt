@@ -71,6 +71,7 @@ class TastingViewModelTest {
 
         assertEquals(1, fakeRepository.added.size)
         assertEquals("Aberlour 16", fakeRepository.added.single().name)
+        assertEquals(LocalDate(2026, 9, 19), fakeRepository.added.single().dateTasted)
     }
 
     @Test

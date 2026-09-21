@@ -13,11 +13,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,7 +40,7 @@ import kotlin.time.ExperimentalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 
-@OptIn(ExperimentalTime::class)
+@OptIn(ExperimentalTime::class, ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun App() {
@@ -44,10 +49,14 @@ fun App() {
         val entries by viewModel.entries.collectAsState()
         val editingEntry by viewModel.editingEntry.collectAsState()
 
+        val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
+
         var name by remember { mutableStateOf("") }
         var category by remember { mutableStateOf(DrinkCategory.WHISKY) }
         var rating by remember { mutableStateOf(0) }
         var notes by remember { mutableStateOf("") }
+        var dateTasted by remember { mutableStateOf(today) }
+        var showDatePicker by remember { mutableStateOf(false) }
         var pendingDelete by remember { mutableStateOf<TastedDrink?>(null) }
 
         LaunchedEffect(editingEntry) {
@@ -57,11 +66,13 @@ fun App() {
                 category = entry.category
                 rating = entry.rating
                 notes = entry.notes
+                dateTasted = entry.dateTasted
             } else {
                 name = ""
                 category = DrinkCategory.WHISKY
                 rating = 0
                 notes = ""
+                dateTasted = today
             }
         }
 
@@ -117,6 +128,13 @@ fun App() {
                         }
                     }
 
+                    OutlinedButton(
+                        onClick = { showDatePicker = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Date: $dateTasted")
+                    }
+
                     OutlinedTextField(
                         value = notes,
                         onValueChange = { notes = it },
@@ -139,13 +157,14 @@ fun App() {
                                 viewModel.saveEntry(
                                     name = name,
                                     category = category,
-                                    dateTasted = Clock.System.todayIn(TimeZone.currentSystemDefault()),
+                                    dateTasted = dateTasted,
                                     rating = rating,
                                     notes = notes,
                                 )
                                 name = ""
                                 rating = 0
                                 notes = ""
+                                dateTasted = today
                             },
                             enabled = name.isNotBlank() && rating > 0,
                             modifier = Modifier.weight(1f),
@@ -176,6 +195,28 @@ fun App() {
                         Text("Delete")
                     }
                 }
+            }
+        }
+
+        if (showDatePicker) {
+            val pickerState = rememberDatePickerState(initialSelectedDateMillis = dateTasted.toPickerMillis())
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        pickerState.selectedDateMillis?.let { dateTasted = it.toLocalDateFromPickerMillis() }
+                        showDatePicker = false
+                    }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) {
+                        Text("Cancel")
+                    }
+                },
+            ) {
+                DatePicker(state = pickerState)
             }
         }
 
