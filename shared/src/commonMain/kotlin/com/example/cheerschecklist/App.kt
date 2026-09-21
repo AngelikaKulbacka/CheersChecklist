@@ -48,6 +48,8 @@ fun App() {
         val viewModel: TastingViewModel = viewModel { TastingViewModel() }
         val entries by viewModel.entries.collectAsState()
         val editingEntry by viewModel.editingEntry.collectAsState()
+        val categoryFilter by viewModel.activeCategoryFilter.collectAsState()
+        var searchText by remember { mutableStateOf("") }
 
         val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
 
@@ -171,6 +173,46 @@ fun App() {
                         ) {
                             Text(if (editingEntry != null) "Save" else "Add")
                         }
+                    }
+                }
+            }
+
+            item {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = {
+                            searchText = it
+                            viewModel.setSearchQuery(it)
+                        },
+                        label = { Text("Search by name") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    val filterOptions: List<DrinkCategory?> = listOf(null) + DrinkCategory.entries
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        filterOptions.chunked(3).forEach { row ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                row.forEach { option ->
+                                    FilterChip(
+                                        selected = categoryFilter == option,
+                                        onClick = { viewModel.setCategoryFilter(option) },
+                                        label = { Text(option?.name ?: "ALL") },
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (entries.isEmpty()) {
+                        val filtering = searchText.isNotBlank() || categoryFilter != null
+                        Text(
+                            if (filtering) "No matching entries" else "No entries yet — add your first one above",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                     }
                 }
             }
