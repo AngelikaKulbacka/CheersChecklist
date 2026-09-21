@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
@@ -14,8 +15,23 @@ class TastingViewModel(
     private val repository: TastedDrinkRepository = Repositories.tastedDrinkRepository,
 ) : ViewModel() {
 
+    private val searchQuery = MutableStateFlow("")
+    private val categoryFilter = MutableStateFlow<DrinkCategory?>(null)
+
+    val activeCategoryFilter: StateFlow<DrinkCategory?> = categoryFilter.asStateFlow()
+
     val entries: StateFlow<List<TastedDrink>> =
-        repository.getAll().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        combine(repository.getAll(), searchQuery, categoryFilter) { all, query, category ->
+            all.filtered(query, category)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setSearchQuery(query: String) {
+        searchQuery.value = query
+    }
+
+    fun setCategoryFilter(category: DrinkCategory?) {
+        categoryFilter.value = category
+    }
 
     private val _editingEntry = MutableStateFlow<TastedDrink?>(null)
     val editingEntry: StateFlow<TastedDrink?> = _editingEntry.asStateFlow()

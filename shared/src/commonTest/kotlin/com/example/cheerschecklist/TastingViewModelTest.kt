@@ -4,7 +4,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -93,6 +95,27 @@ class TastingViewModelTest {
         advanceUntilIdle()
 
         assertEquals(0, fakeRepository.added.size)
+    }
+
+    @Test
+    fun categoryFilterAndSearch_narrowEntries() = runTest(dispatcher) {
+        val fakeRepository = FakeTastedDrinkRepository()
+        val viewModel = TastingViewModel(fakeRepository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.entries.collect {} }
+
+        viewModel.saveEntry("Aberlour 12", DrinkCategory.WHISKY, LocalDate(2026, 9, 18), 5, "")
+        viewModel.saveEntry("Chardonnay", DrinkCategory.WINE, LocalDate(2026, 9, 19), 3, "")
+        advanceUntilIdle()
+        assertEquals(2, viewModel.entries.value.size)
+
+        viewModel.setCategoryFilter(DrinkCategory.WINE)
+        advanceUntilIdle()
+        assertEquals(listOf("Chardonnay"), viewModel.entries.value.map { it.name })
+
+        viewModel.setCategoryFilter(null)
+        viewModel.setSearchQuery("aber")
+        advanceUntilIdle()
+        assertEquals(listOf("Aberlour 12"), viewModel.entries.value.map { it.name })
     }
 }
 
