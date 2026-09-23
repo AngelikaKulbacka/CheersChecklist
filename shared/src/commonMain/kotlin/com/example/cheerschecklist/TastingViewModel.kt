@@ -44,13 +44,13 @@ class TastingViewModel(
         _editingEntry.value = null
     }
 
-    fun saveEntry(name: String, category: DrinkCategory, dateTasted: LocalDate, rating: Int, notes: String) {
+    fun saveEntry(name: String, brand: String?, category: DrinkCategory, dateTasted: LocalDate, rating: Int, notes: String) {
         val editing = _editingEntry.value
         viewModelScope.launch {
             if (editing != null) {
-                repository.update(editing.copy(name = name, category = category, dateTasted = dateTasted, rating = rating, notes = notes))
+                repository.update(editing.copy(name = name, brand = brand, category = category, dateTasted = dateTasted, rating = rating, notes = notes))
             } else {
-                repository.add(TastedDrink(name = name, category = category, dateTasted = dateTasted, rating = rating, notes = notes))
+                repository.add(TastedDrink(name = name, brand = brand, category = category, dateTasted = dateTasted, rating = rating, notes = notes))
             }
             _editingEntry.value = null
         }

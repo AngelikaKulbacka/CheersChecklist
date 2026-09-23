@@ -30,8 +30,9 @@ class TastedDrinkDaoTest {
         database.close()
     }
 
-    private fun drink(name: String, date: LocalDate = LocalDate(2026, 9, 21)) = TastedDrink(
+    private fun drink(name: String, date: LocalDate = LocalDate(2026, 9, 21), brand: String? = null) = TastedDrink(
         name = name,
+        brand = brand,
         category = DrinkCategory.WHISKY,
         dateTasted = date,
         rating = 4,
@@ -43,6 +44,7 @@ class TastedDrinkDaoTest {
         dao.insert(
             TastedDrink(
                 name = "Chardonnay",
+                brand = "Concha y Toro",
                 category = DrinkCategory.WINE,
                 dateTasted = LocalDate(2026, 3, 15),
                 rating = 5,
@@ -54,10 +56,18 @@ class TastedDrinkDaoTest {
 
         assertNotEquals(0L, stored.id)
         assertEquals("Chardonnay", stored.name)
+        assertEquals("Concha y Toro", stored.brand)
         assertEquals(DrinkCategory.WINE, stored.category)
         assertEquals(LocalDate(2026, 3, 15), stored.dateTasted)
         assertEquals(5, stored.rating)
         assertEquals("Buttery", stored.notes)
+    }
+
+    @Test
+    fun insert_withoutBrand_staysNull() = runBlocking {
+        dao.insert(drink("Guinness"))
+
+        assertEquals(null, dao.getAll().first().single().brand)
     }
 
     @Test
