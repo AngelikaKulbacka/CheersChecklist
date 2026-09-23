@@ -7,12 +7,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import org.koin.compose.koinInject
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        val viewModel: TastingViewModel = viewModel { TastingViewModel() }
+        val repository: TastedDrinkRepository = koinInject()
+        val viewModel: TastingViewModel = viewModel { TastingViewModel(repository) }
         val navController = rememberNavController()
 
         NavHost(navController = navController, startDestination = "list") {

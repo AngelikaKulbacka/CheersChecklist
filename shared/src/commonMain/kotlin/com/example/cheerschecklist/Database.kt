@@ -12,9 +12,3 @@ fun getRoomDatabase(builder: RoomDatabase.Builder<AppDatabase>): AppDatabase =
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.Default)
         .build()
-
-object DatabaseProvider {
-    private var instance: AppDatabase? = null
-    fun getDatabase(): AppDatabase =
-        instance ?: getRoomDatabase(getDatabaseBuilder()).also { instance = it }
-}

@@ -10,6 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         AppContext.init(this)
+        initKoin()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
