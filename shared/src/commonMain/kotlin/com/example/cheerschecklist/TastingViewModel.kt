@@ -17,12 +17,14 @@ class TastingViewModel(
 
     private val searchQuery = MutableStateFlow("")
     private val categoryFilter = MutableStateFlow<DrinkCategory?>(null)
+    private val sortOption = MutableStateFlow(SortOption.DATE_DESC)
 
     val activeCategoryFilter: StateFlow<DrinkCategory?> = categoryFilter.asStateFlow()
+    val activeSortOption: StateFlow<SortOption> = sortOption.asStateFlow()
 
     val entries: StateFlow<List<TastedDrink>> =
-        combine(repository.getAll(), searchQuery, categoryFilter) { all, query, category ->
-            all.filtered(query, category)
+        combine(repository.getAll(), searchQuery, categoryFilter, sortOption) { all, query, category, sort ->
+            all.filtered(query, category).orderedBy(sort)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun setSearchQuery(query: String) {
@@ -31,6 +33,10 @@ class TastingViewModel(
 
     fun setCategoryFilter(category: DrinkCategory?) {
         categoryFilter.value = category
+    }
+
+    fun setSortOption(option: SortOption) {
+        sortOption.value = option
     }
 
     private val _editingEntry = MutableStateFlow<TastedDrink?>(null)
