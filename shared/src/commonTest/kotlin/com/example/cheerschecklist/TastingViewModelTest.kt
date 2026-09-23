@@ -122,6 +122,27 @@ class TastingViewModelTest {
         advanceUntilIdle()
         assertEquals(listOf("Aberlour 12"), viewModel.entries.value.map { it.name })
     }
+
+    @Test
+    fun setSortOption_reordersEntries() = runTest(dispatcher) {
+        val fakeRepository = FakeTastedDrinkRepository()
+        val viewModel = TastingViewModel(fakeRepository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.entries.collect {} }
+
+        viewModel.saveEntry("Chardonnay", null, DrinkCategory.WINE, LocalDate(2026, 1, 5), 3, "")
+        viewModel.saveEntry("Aberlour 12", null, DrinkCategory.WHISKY, LocalDate(2026, 9, 20), 5, "")
+        viewModel.saveEntry("Guinness", null, DrinkCategory.BEER, LocalDate(2026, 3, 15), 1, "")
+        advanceUntilIdle()
+        assertEquals(listOf("Aberlour 12", "Guinness", "Chardonnay"), viewModel.entries.value.map { it.name })
+
+        viewModel.setSortOption(SortOption.NAME_ASC)
+        advanceUntilIdle()
+        assertEquals(listOf("Aberlour 12", "Chardonnay", "Guinness"), viewModel.entries.value.map { it.name })
+
+        viewModel.setSortOption(SortOption.RATING_DESC)
+        advanceUntilIdle()
+        assertEquals(listOf("Aberlour 12", "Chardonnay", "Guinness"), viewModel.entries.value.map { it.name })
+    }
 }
 
 private class FakeTastedDrinkRepository : TastedDrinkRepository {

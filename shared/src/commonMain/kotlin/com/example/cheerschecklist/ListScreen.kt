@@ -37,6 +37,7 @@ fun ListScreen(
 ) {
     val entries by viewModel.entries.collectAsState()
     val categoryFilter by viewModel.activeCategoryFilter.collectAsState()
+    val activeSortOption by viewModel.activeSortOption.collectAsState()
     var searchText by remember { mutableStateOf("") }
     var pendingDelete by remember { mutableStateOf<TastedDrink?>(null) }
 
@@ -84,6 +85,19 @@ fun ListScreen(
                                         label = { Text(option?.name ?: "ALL") },
                                     )
                                 }
+                            }
+                        }
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Sort by", style = MaterialTheme.typography.labelLarge)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            SortOption.entries.forEach { option ->
+                                FilterChip(
+                                    selected = activeSortOption == option,
+                                    onClick = { viewModel.setSortOption(option) },
+                                    label = { Text(sortOptionLabel(option)) },
+                                )
                             }
                         }
                     }
@@ -146,4 +160,10 @@ fun ListScreen(
             },
         )
     }
+}
+
+private fun sortOptionLabel(option: SortOption): String = when (option) {
+    SortOption.DATE_DESC -> "Newest"
+    SortOption.NAME_ASC -> "Name"
+    SortOption.RATING_DESC -> "Rating"
 }
