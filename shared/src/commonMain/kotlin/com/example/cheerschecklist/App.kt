@@ -54,6 +54,7 @@ fun App() {
         val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
 
         var name by remember { mutableStateOf("") }
+        var brand by remember { mutableStateOf("") }
         var category by remember { mutableStateOf(DrinkCategory.WHISKY) }
         var rating by remember { mutableStateOf(0) }
         var notes by remember { mutableStateOf("") }
@@ -65,12 +66,14 @@ fun App() {
             val entry = editingEntry
             if (entry != null) {
                 name = entry.name
+                brand = entry.brand ?: ""
                 category = entry.category
                 rating = entry.rating
                 notes = entry.notes
                 dateTasted = entry.dateTasted
             } else {
                 name = ""
+                brand = ""
                 category = DrinkCategory.WHISKY
                 rating = 0
                 notes = ""
@@ -97,6 +100,13 @@ fun App() {
                         value = name,
                         onValueChange = { name = it },
                         label = { Text("Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    OutlinedTextField(
+                        value = brand,
+                        onValueChange = { brand = it },
+                        label = { Text("Brand (optional)") },
                         modifier = Modifier.fillMaxWidth(),
                     )
 
@@ -158,12 +168,14 @@ fun App() {
                             onClick = {
                                 viewModel.saveEntry(
                                     name = name,
+                                    brand = brand.trim().ifBlank { null },
                                     category = category,
                                     dateTasted = dateTasted,
                                     rating = rating,
                                     notes = notes,
                                 )
                                 name = ""
+                                brand = ""
                                 rating = 0
                                 notes = ""
                                 dateTasted = today
@@ -227,7 +239,10 @@ fun App() {
                             .weight(1f)
                             .clickable { viewModel.startEditing(entry) },
                     ) {
-                        Text("${entry.name} (${entry.category.name})", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            if (entry.brand != null) "${entry.name} — ${entry.brand} (${entry.category.name})" else "${entry.name} (${entry.category.name})",
+                            style = MaterialTheme.typography.titleMedium,
+                        )
                         Text("${entry.dateTasted} · ${entry.rating}/5", style = MaterialTheme.typography.bodySmall)
                         if (entry.notes.isNotBlank()) {
                             Text(entry.notes, style = MaterialTheme.typography.bodyMedium)

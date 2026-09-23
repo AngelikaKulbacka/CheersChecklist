@@ -35,6 +35,7 @@ class TastingViewModelTest {
 
         viewModel.saveEntry(
             name = "Aberlour 12",
+            brand = "Aberlour",
             category = DrinkCategory.WHISKY,
             dateTasted = LocalDate(2026, 9, 18),
             rating = 5,
@@ -44,6 +45,7 @@ class TastingViewModelTest {
 
         assertEquals(1, fakeRepository.added.size)
         assertEquals("Aberlour 12", fakeRepository.added.single().name)
+        assertEquals("Aberlour", fakeRepository.added.single().brand)
     }
 
     @Test
@@ -53,6 +55,7 @@ class TastingViewModelTest {
 
         viewModel.saveEntry(
             name = "Aberlour 12",
+            brand = null,
             category = DrinkCategory.WHISKY,
             dateTasted = LocalDate(2026, 9, 18),
             rating = 5,
@@ -64,6 +67,7 @@ class TastingViewModelTest {
         viewModel.startEditing(added)
         viewModel.saveEntry(
             name = "Aberlour 16",
+            brand = null,
             category = DrinkCategory.WHISKY,
             dateTasted = LocalDate(2026, 9, 19),
             rating = 4,
@@ -83,6 +87,7 @@ class TastingViewModelTest {
 
         viewModel.saveEntry(
             name = "Aberlour 12",
+            brand = null,
             category = DrinkCategory.WHISKY,
             dateTasted = LocalDate(2026, 9, 18),
             rating = 5,
@@ -103,8 +108,8 @@ class TastingViewModelTest {
         val viewModel = TastingViewModel(fakeRepository)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.entries.collect {} }
 
-        viewModel.saveEntry("Aberlour 12", DrinkCategory.WHISKY, LocalDate(2026, 9, 18), 5, "")
-        viewModel.saveEntry("Chardonnay", DrinkCategory.WINE, LocalDate(2026, 9, 19), 3, "")
+        viewModel.saveEntry("Aberlour 12", null, DrinkCategory.WHISKY, LocalDate(2026, 9, 18), 5, "")
+        viewModel.saveEntry("Chardonnay", null, DrinkCategory.WINE, LocalDate(2026, 9, 19), 3, "")
         advanceUntilIdle()
         assertEquals(2, viewModel.entries.value.size)
 

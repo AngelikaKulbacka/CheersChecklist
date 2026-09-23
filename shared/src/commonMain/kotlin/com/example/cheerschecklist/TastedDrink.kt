@@ -10,6 +10,7 @@ enum class DrinkCategory { WHISKY, WINE, BEER, COCKTAIL, OTHER }
 data class TastedDrink(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
+    val brand: String? = null,
     val category: DrinkCategory,
     val dateTasted: LocalDate,
     val rating: Int,
