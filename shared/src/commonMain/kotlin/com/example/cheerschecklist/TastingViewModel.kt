@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
 class TastingViewModel(
-    private val repository: TastedDrinkRepository = Repositories.tastedDrinkRepository,
+    private val repository: TastedDrinkRepository,
 ) : ViewModel() {
 
     private val searchQuery = MutableStateFlow("")
