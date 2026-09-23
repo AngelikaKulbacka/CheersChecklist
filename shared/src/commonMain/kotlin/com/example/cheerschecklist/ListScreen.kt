@@ -69,7 +69,7 @@ fun ListScreen(
                             searchText = it
                             viewModel.setSearchQuery(it)
                         },
-                        label = { Text("Search by name") },
+                        label = { Text("Search by name or brand") },
                         modifier = Modifier.fillMaxWidth(),
                     )
 
