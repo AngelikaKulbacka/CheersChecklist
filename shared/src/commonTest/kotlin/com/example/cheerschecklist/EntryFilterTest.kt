@@ -6,16 +6,15 @@ import kotlin.test.assertEquals
 
 class EntryFilterTest {
 
-    private fun drink(name: String, category: DrinkCategory, brand: String? = null) = TastedDrink(
+    private fun drink(name: String, category: DrinkCategory) = TastedDrink(
         name = name,
-        brand = brand,
         category = category,
         dateTasted = LocalDate(2026, 9, 21),
         rating = 3,
     )
 
     private val entries = listOf(
-        drink("Aberlour 12", DrinkCategory.WHISKY, brand = "Pernod Ricard"),
+        drink("Aberlour 12", DrinkCategory.WHISKY),
         drink("Lagavulin 16", DrinkCategory.WHISKY),
         drink("Chardonnay", DrinkCategory.WINE),
         drink("Guinness", DrinkCategory.BEER),
@@ -59,12 +58,15 @@ class EntryFilterTest {
     }
 
     @Test
-    fun query_matchesBrandEvenWhenNameDoesNotMatch() {
-        assertEquals(listOf("Aberlour 12"), entries.filtered("pernod", null).map { it.name })
+    fun query_matchesTypeEvenWhenNameDoesNotMatch() {
+        assertEquals(
+            listOf("Aberlour 12", "Lagavulin 16"),
+            entries.filtered("whisky", null).map { it.name },
+        )
     }
 
     @Test
-    fun query_doesNotThrowWhenBrandIsNull() {
-        assertEquals(emptyList(), entries.filtered("pernod", DrinkCategory.WINE))
+    fun queryMatchingType_combinesWithCategoryFilter() {
+        assertEquals(emptyList(), entries.filtered("whisky", DrinkCategory.WINE))
     }
 }

@@ -7,7 +7,7 @@ fun List<TastedDrink>.filtered(query: String, category: DrinkCategory?): List<Ta
             (
                 trimmed.isEmpty() ||
                     drink.name.contains(trimmed, ignoreCase = true) ||
-                    drink.brand?.contains(trimmed, ignoreCase = true) == true
+                    drink.category.name.contains(trimmed, ignoreCase = true)
                 )
     }
 }

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
@@ -27,6 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -64,13 +68,17 @@ fun ListScreen(
                     Text("Cheers Checklist", style = MaterialTheme.typography.headlineMedium)
                     Text("Your tasting log", style = MaterialTheme.typography.bodyMedium)
 
+                    val keyboardController = LocalSoftwareKeyboardController.current
                     OutlinedTextField(
                         value = searchText,
                         onValueChange = {
                             searchText = it
                             viewModel.setSearchQuery(it)
                         },
-                        label = { Text("Search by name or brand") },
+                        label = { Text("Search by name or type") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
                         modifier = Modifier.fillMaxWidth(),
                     )
 
