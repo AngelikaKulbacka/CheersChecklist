@@ -43,6 +43,10 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     var name by remember { mutableStateOf("") }
     var brand by remember { mutableStateOf("") }
     var category by remember { mutableStateOf(DrinkCategory.WHISKY) }
+    var color by remember { mutableStateOf("") }
+    var oiliness by remember { mutableStateOf("") }
+    var scent by remember { mutableStateOf("") }
+    var flavor by remember { mutableStateOf("") }
     var rating by remember { mutableStateOf(0) }
     var notes by remember { mutableStateOf("") }
     var dateTasted by remember { mutableStateOf(today) }
@@ -54,6 +58,10 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             name = entry.name
             brand = entry.brand ?: ""
             category = entry.category
+            color = entry.color ?: ""
+            oiliness = entry.oiliness ?: ""
+            scent = entry.scent ?: ""
+            flavor = entry.flavor ?: ""
             rating = entry.rating
             notes = entry.notes
             dateTasted = entry.dateTasted
@@ -61,6 +69,10 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             name = ""
             brand = ""
             category = DrinkCategory.WHISKY
+            color = ""
+            oiliness = ""
+            scent = ""
+            flavor = ""
             rating = 0
             notes = ""
             dateTasted = today
@@ -114,6 +126,34 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     }
                 }
 
+                OutlinedTextField(
+                    value = color,
+                    onValueChange = { color = it },
+                    label = { Text("Color (optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                OutlinedTextField(
+                    value = oiliness,
+                    onValueChange = { oiliness = it },
+                    label = { Text("Oiliness (optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                OutlinedTextField(
+                    value = scent,
+                    onValueChange = { scent = it },
+                    label = { Text("Scent (optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                OutlinedTextField(
+                    value = flavor,
+                    onValueChange = { flavor = it },
+                    label = { Text("Flavor (optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Rating", style = MaterialTheme.typography.labelLarge)
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -161,6 +201,10 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                                 dateTasted = dateTasted,
                                 rating = rating,
                                 notes = notes,
+                                color = color.trim().ifBlank { null },
+                                oiliness = oiliness.trim().ifBlank { null },
+                                scent = scent.trim().ifBlank { null },
+                                flavor = flavor.trim().ifBlank { null },
                             )
                             onDone()
                         },

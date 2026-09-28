@@ -30,10 +30,22 @@ class TastedDrinkDaoTest {
         database.close()
     }
 
-    private fun drink(name: String, date: LocalDate = LocalDate(2026, 9, 21), brand: String? = null) = TastedDrink(
+    private fun drink(
+        name: String,
+        date: LocalDate = LocalDate(2026, 9, 21),
+        brand: String? = null,
+        color: String? = null,
+        oiliness: String? = null,
+        scent: String? = null,
+        flavor: String? = null,
+    ) = TastedDrink(
         name = name,
         brand = brand,
         category = DrinkCategory.WHISKY,
+        color = color,
+        oiliness = oiliness,
+        scent = scent,
+        flavor = flavor,
         dateTasted = date,
         rating = 4,
         notes = "notes for $name",
@@ -46,6 +58,10 @@ class TastedDrinkDaoTest {
                 name = "Chardonnay",
                 brand = "Concha y Toro",
                 category = DrinkCategory.WINE,
+                color = "Pale gold",
+                oiliness = "Light",
+                scent = "Citrus",
+                flavor = "Buttery",
                 dateTasted = LocalDate(2026, 3, 15),
                 rating = 5,
                 notes = "Buttery",
@@ -58,16 +74,25 @@ class TastedDrinkDaoTest {
         assertEquals("Chardonnay", stored.name)
         assertEquals("Concha y Toro", stored.brand)
         assertEquals(DrinkCategory.WINE, stored.category)
+        assertEquals("Pale gold", stored.color)
+        assertEquals("Light", stored.oiliness)
+        assertEquals("Citrus", stored.scent)
+        assertEquals("Buttery", stored.flavor)
         assertEquals(LocalDate(2026, 3, 15), stored.dateTasted)
         assertEquals(5, stored.rating)
         assertEquals("Buttery", stored.notes)
     }
 
     @Test
-    fun insert_withoutBrand_staysNull() = runBlocking {
+    fun insert_withoutOptionalFields_staysNull() = runBlocking {
         dao.insert(drink("Guinness"))
 
-        assertEquals(null, dao.getAll().first().single().brand)
+        val stored = dao.getAll().first().single()
+        assertEquals(null, stored.brand)
+        assertEquals(null, stored.color)
+        assertEquals(null, stored.oiliness)
+        assertEquals(null, stored.scent)
+        assertEquals(null, stored.flavor)
     }
 
     @Test

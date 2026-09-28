@@ -9,3 +9,12 @@ val MIGRATION_1_2: Migration = object : Migration(1, 2) {
         connection.execSQL("ALTER TABLE TastedDrink ADD COLUMN brand TEXT")
     }
 }
+
+val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE TastedDrink ADD COLUMN color TEXT")
+        connection.execSQL("ALTER TABLE TastedDrink ADD COLUMN oiliness TEXT")
+        connection.execSQL("ALTER TABLE TastedDrink ADD COLUMN scent TEXT")
+        connection.execSQL("ALTER TABLE TastedDrink ADD COLUMN flavor TEXT")
+    }
+}

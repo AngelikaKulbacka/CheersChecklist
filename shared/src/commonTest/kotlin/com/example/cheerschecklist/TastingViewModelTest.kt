@@ -40,12 +40,21 @@ class TastingViewModelTest {
             dateTasted = LocalDate(2026, 9, 18),
             rating = 5,
             notes = "Smooth",
+            color = "Amber",
+            oiliness = "Medium",
+            scent = "Honey",
+            flavor = "Vanilla",
         )
         advanceUntilIdle()
 
+        val added = fakeRepository.added.single()
         assertEquals(1, fakeRepository.added.size)
-        assertEquals("Aberlour 12", fakeRepository.added.single().name)
-        assertEquals("Aberlour", fakeRepository.added.single().brand)
+        assertEquals("Aberlour 12", added.name)
+        assertEquals("Aberlour", added.brand)
+        assertEquals("Amber", added.color)
+        assertEquals("Medium", added.oiliness)
+        assertEquals("Honey", added.scent)
+        assertEquals("Vanilla", added.flavor)
     }
 
     @Test
