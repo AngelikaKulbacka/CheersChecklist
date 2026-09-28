@@ -62,4 +62,26 @@ class DatabaseMigrationTest {
         }
         migrated.close()
     }
+
+    @Test
+    fun migrate3To4_preservesExistingRowAndAddsCustomCategoryTable() {
+        val v3 = helper.createDatabase(3)
+        v3.execSQL(
+            "INSERT INTO TastedDrink (id, name, category, dateTasted, rating, notes) " +
+                "VALUES (1, 'Aberlour 12', 'WHISKY', '2026-09-18', 5, '')",
+        )
+        v3.close()
+
+        val migrated = helper.runMigrationsAndValidate(4, listOf(MIGRATION_3_4))
+        migrated.prepare("SELECT name FROM TastedDrink WHERE id = 1").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("Aberlour 12", stmt.getText(0))
+        }
+        migrated.execSQL("INSERT INTO CustomCategory (name) VALUES ('Mead')")
+        migrated.prepare("SELECT name FROM CustomCategory WHERE name = 'Mead'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("Mead", stmt.getText(0))
+        }
+        migrated.close()
+    }
 }

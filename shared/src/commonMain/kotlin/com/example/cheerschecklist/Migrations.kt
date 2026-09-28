@@ -18,3 +18,11 @@ val MIGRATION_2_3: Migration = object : Migration(2, 3) {
         connection.execSQL("ALTER TABLE TastedDrink ADD COLUMN flavor TEXT")
     }
 }
+
+val MIGRATION_3_4: Migration = object : Migration(3, 4) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            "CREATE TABLE IF NOT EXISTS `CustomCategory` (`name` TEXT NOT NULL COLLATE NOCASE, PRIMARY KEY(`name`))",
+        )
+    }
+}

@@ -7,20 +7,27 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
 class TastingViewModel(
     private val repository: TastedDrinkRepository,
+    private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
 
     private val searchQuery = MutableStateFlow("")
-    private val categoryFilter = MutableStateFlow<DrinkCategory?>(null)
+    private val categoryFilter = MutableStateFlow<String?>(null)
     private val sortOption = MutableStateFlow(SortOption.DATE_DESC)
 
-    val activeCategoryFilter: StateFlow<DrinkCategory?> = categoryFilter.asStateFlow()
+    val activeCategoryFilter: StateFlow<String?> = categoryFilter.asStateFlow()
     val activeSortOption: StateFlow<SortOption> = sortOption.asStateFlow()
+
+    val availableCategories: StateFlow<List<String>> =
+        categoryRepository.getCustomCategories()
+            .map { custom -> BUILT_IN_CATEGORIES + custom }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BUILT_IN_CATEGORIES)
 
     val entries: StateFlow<List<TastedDrink>> =
         combine(repository.getAll(), searchQuery, categoryFilter, sortOption) { all, query, category, sort ->
@@ -31,12 +38,19 @@ class TastingViewModel(
         searchQuery.value = query
     }
 
-    fun setCategoryFilter(category: DrinkCategory?) {
+    fun setCategoryFilter(category: String?) {
         categoryFilter.value = category
     }
 
     fun setSortOption(option: SortOption) {
         sortOption.value = option
+    }
+
+    fun addCustomCategory(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return
+        if (availableCategories.value.any { it.equals(trimmed, ignoreCase = true) }) return
+        viewModelScope.launch { categoryRepository.addCustomCategory(trimmed) }
     }
 
     private val _editingEntry = MutableStateFlow<TastedDrink?>(null)
@@ -53,7 +67,7 @@ class TastingViewModel(
     fun saveEntry(
         name: String,
         brand: String?,
-        category: DrinkCategory,
+        category: String,
         dateTasted: LocalDate,
         rating: Int,
         notes: String,

@@ -31,12 +31,12 @@ class TastingViewModelTest {
     @Test
     fun saveEntry_insertsIntoRepository() = runTest(dispatcher) {
         val fakeRepository = FakeTastedDrinkRepository()
-        val viewModel = TastingViewModel(fakeRepository)
+        val viewModel = TastingViewModel(fakeRepository, FakeCategoryRepository())
 
         viewModel.saveEntry(
             name = "Aberlour 12",
             brand = "Aberlour",
-            category = DrinkCategory.WHISKY,
+            category = "WHISKY",
             dateTasted = LocalDate(2026, 9, 18),
             rating = 5,
             notes = "Smooth",
@@ -60,12 +60,12 @@ class TastingViewModelTest {
     @Test
     fun saveEntry_whileEditing_updatesInsteadOfAdding() = runTest(dispatcher) {
         val fakeRepository = FakeTastedDrinkRepository()
-        val viewModel = TastingViewModel(fakeRepository)
+        val viewModel = TastingViewModel(fakeRepository, FakeCategoryRepository())
 
         viewModel.saveEntry(
             name = "Aberlour 12",
             brand = null,
-            category = DrinkCategory.WHISKY,
+            category = "WHISKY",
             dateTasted = LocalDate(2026, 9, 18),
             rating = 5,
             notes = "Smooth",
@@ -77,7 +77,7 @@ class TastingViewModelTest {
         viewModel.saveEntry(
             name = "Aberlour 16",
             brand = null,
-            category = DrinkCategory.WHISKY,
+            category = "WHISKY",
             dateTasted = LocalDate(2026, 9, 19),
             rating = 4,
             notes = "Richer",
@@ -92,12 +92,12 @@ class TastingViewModelTest {
     @Test
     fun deleteEntry_removesFromRepository() = runTest(dispatcher) {
         val fakeRepository = FakeTastedDrinkRepository()
-        val viewModel = TastingViewModel(fakeRepository)
+        val viewModel = TastingViewModel(fakeRepository, FakeCategoryRepository())
 
         viewModel.saveEntry(
             name = "Aberlour 12",
             brand = null,
-            category = DrinkCategory.WHISKY,
+            category = "WHISKY",
             dateTasted = LocalDate(2026, 9, 18),
             rating = 5,
             notes = "Smooth",
@@ -114,15 +114,15 @@ class TastingViewModelTest {
     @Test
     fun categoryFilterAndSearch_narrowEntries() = runTest(dispatcher) {
         val fakeRepository = FakeTastedDrinkRepository()
-        val viewModel = TastingViewModel(fakeRepository)
+        val viewModel = TastingViewModel(fakeRepository, FakeCategoryRepository())
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.entries.collect {} }
 
-        viewModel.saveEntry("Aberlour 12", null, DrinkCategory.WHISKY, LocalDate(2026, 9, 18), 5, "")
-        viewModel.saveEntry("Chardonnay", null, DrinkCategory.WINE, LocalDate(2026, 9, 19), 3, "")
+        viewModel.saveEntry("Aberlour 12", null, "WHISKY", LocalDate(2026, 9, 18), 5, "")
+        viewModel.saveEntry("Chardonnay", null, "WINE", LocalDate(2026, 9, 19), 3, "")
         advanceUntilIdle()
         assertEquals(2, viewModel.entries.value.size)
 
-        viewModel.setCategoryFilter(DrinkCategory.WINE)
+        viewModel.setCategoryFilter("WINE")
         advanceUntilIdle()
         assertEquals(listOf("Chardonnay"), viewModel.entries.value.map { it.name })
 
@@ -135,12 +135,12 @@ class TastingViewModelTest {
     @Test
     fun setSortOption_reordersEntries() = runTest(dispatcher) {
         val fakeRepository = FakeTastedDrinkRepository()
-        val viewModel = TastingViewModel(fakeRepository)
+        val viewModel = TastingViewModel(fakeRepository, FakeCategoryRepository())
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.entries.collect {} }
 
-        viewModel.saveEntry("Chardonnay", null, DrinkCategory.WINE, LocalDate(2026, 1, 5), 3, "")
-        viewModel.saveEntry("Aberlour 12", null, DrinkCategory.WHISKY, LocalDate(2026, 9, 20), 5, "")
-        viewModel.saveEntry("Guinness", null, DrinkCategory.BEER, LocalDate(2026, 3, 15), 1, "")
+        viewModel.saveEntry("Chardonnay", null, "WINE", LocalDate(2026, 1, 5), 3, "")
+        viewModel.saveEntry("Aberlour 12", null, "WHISKY", LocalDate(2026, 9, 20), 5, "")
+        viewModel.saveEntry("Guinness", null, "BEER", LocalDate(2026, 3, 15), 1, "")
         advanceUntilIdle()
         assertEquals(listOf("Aberlour 12", "Guinness", "Chardonnay"), viewModel.entries.value.map { it.name })
 
@@ -151,6 +151,35 @@ class TastingViewModelTest {
         viewModel.setSortOption(SortOption.RATING_DESC)
         advanceUntilIdle()
         assertEquals(listOf("Aberlour 12", "Chardonnay", "Guinness"), viewModel.entries.value.map { it.name })
+    }
+
+    @Test
+    fun addCustomCategory_appearsInAvailableCategories() = runTest(dispatcher) {
+        val fakeCategoryRepository = FakeCategoryRepository()
+        val viewModel = TastingViewModel(FakeTastedDrinkRepository(), fakeCategoryRepository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.availableCategories.collect {} }
+
+        viewModel.addCustomCategory("Mead")
+        advanceUntilIdle()
+
+        assertEquals(BUILT_IN_CATEGORIES + listOf("Mead"), viewModel.availableCategories.value)
+    }
+
+    @Test
+    fun addCustomCategory_duplicateOfBuiltInOrExisting_isNoOp() = runTest(dispatcher) {
+        val fakeCategoryRepository = FakeCategoryRepository()
+        val viewModel = TastingViewModel(FakeTastedDrinkRepository(), fakeCategoryRepository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.availableCategories.collect {} }
+
+        viewModel.addCustomCategory("whisky")
+        advanceUntilIdle()
+        assertEquals(BUILT_IN_CATEGORIES, viewModel.availableCategories.value)
+
+        viewModel.addCustomCategory("Mead")
+        advanceUntilIdle()
+        viewModel.addCustomCategory("mead")
+        advanceUntilIdle()
+        assertEquals(BUILT_IN_CATEGORIES + listOf("Mead"), viewModel.availableCategories.value)
     }
 }
 
@@ -175,5 +204,16 @@ private class FakeTastedDrinkRepository : TastedDrinkRepository {
     override suspend fun delete(drink: TastedDrink) {
         added.removeAll { it.id == drink.id }
         flow.value = added.toList()
+    }
+}
+
+private class FakeCategoryRepository : CategoryRepository {
+    private val flow = MutableStateFlow<List<String>>(emptyList())
+
+    override fun getCustomCategories(): Flow<List<String>> = flow
+
+    override suspend fun addCustomCategory(name: String) {
+        if (flow.value.any { it.equals(name, ignoreCase = true) }) return
+        flow.value = flow.value + name
     }
 }

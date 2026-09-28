@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 
 class EntryFilterTest {
 
-    private fun drink(name: String, category: DrinkCategory) = TastedDrink(
+    private fun drink(name: String, category: String) = TastedDrink(
         name = name,
         category = category,
         dateTasted = LocalDate(2026, 9, 21),
@@ -14,10 +14,10 @@ class EntryFilterTest {
     )
 
     private val entries = listOf(
-        drink("Aberlour 12", DrinkCategory.WHISKY),
-        drink("Lagavulin 16", DrinkCategory.WHISKY),
-        drink("Chardonnay", DrinkCategory.WINE),
-        drink("Guinness", DrinkCategory.BEER),
+        drink("Aberlour 12", "WHISKY"),
+        drink("Lagavulin 16", "WHISKY"),
+        drink("Chardonnay", "WINE"),
+        drink("Guinness", "BEER"),
     )
 
     @Test
@@ -39,7 +39,7 @@ class EntryFilterTest {
     fun category_narrowsToThatCategory() {
         assertEquals(
             listOf("Aberlour 12", "Lagavulin 16"),
-            entries.filtered("", DrinkCategory.WHISKY).map { it.name },
+            entries.filtered("", "WHISKY").map { it.name },
         )
     }
 
@@ -47,9 +47,9 @@ class EntryFilterTest {
     fun queryAndCategory_combineWithAnd() {
         assertEquals(
             listOf("Lagavulin 16"),
-            entries.filtered("16", DrinkCategory.WHISKY).map { it.name },
+            entries.filtered("16", "WHISKY").map { it.name },
         )
-        assertEquals(emptyList(), entries.filtered("16", DrinkCategory.WINE))
+        assertEquals(emptyList(), entries.filtered("16", "WINE"))
     }
 
     @Test
@@ -67,6 +67,6 @@ class EntryFilterTest {
 
     @Test
     fun queryMatchingType_combinesWithCategoryFilter() {
-        assertEquals(emptyList(), entries.filtered("whisky", DrinkCategory.WINE))
+        assertEquals(emptyList(), entries.filtered("whisky", "WINE"))
     }
 }

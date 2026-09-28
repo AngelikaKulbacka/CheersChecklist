@@ -41,7 +41,7 @@ class TastedDrinkDaoTest {
     ) = TastedDrink(
         name = name,
         brand = brand,
-        category = DrinkCategory.WHISKY,
+        category = "WHISKY",
         color = color,
         oiliness = oiliness,
         scent = scent,
@@ -57,7 +57,7 @@ class TastedDrinkDaoTest {
             TastedDrink(
                 name = "Chardonnay",
                 brand = "Concha y Toro",
-                category = DrinkCategory.WINE,
+                category = "WINE",
                 color = "Pale gold",
                 oiliness = "Light",
                 scent = "Citrus",
@@ -73,7 +73,7 @@ class TastedDrinkDaoTest {
         assertNotEquals(0L, stored.id)
         assertEquals("Chardonnay", stored.name)
         assertEquals("Concha y Toro", stored.brand)
-        assertEquals(DrinkCategory.WINE, stored.category)
+        assertEquals("WINE", stored.category)
         assertEquals("Pale gold", stored.color)
         assertEquals("Light", stored.oiliness)
         assertEquals("Citrus", stored.scent)

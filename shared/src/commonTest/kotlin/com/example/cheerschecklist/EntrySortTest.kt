@@ -8,7 +8,7 @@ class EntrySortTest {
 
     private fun drink(name: String, date: LocalDate, rating: Int) = TastedDrink(
         name = name,
-        category = DrinkCategory.WHISKY,
+        category = "WHISKY",
         dateTasted = date,
         rating = rating,
     )

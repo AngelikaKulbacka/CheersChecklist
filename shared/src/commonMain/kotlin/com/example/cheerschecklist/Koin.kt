@@ -8,6 +8,8 @@ val appModule = module {
     single<AppDatabase> { getRoomDatabase(getDatabaseBuilder()) }
     single<TastedDrinkDao> { get<AppDatabase>().tastedDrinkDao() }
     single<TastedDrinkRepository> { RoomTastedDrinkRepository(get()) }
+    single<CustomCategoryDao> { get<AppDatabase>().customCategoryDao() }
+    single<CategoryRepository> { RoomCategoryRepository(get()) }
 }
 
 fun initKoin() {

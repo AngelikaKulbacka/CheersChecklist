@@ -42,6 +42,7 @@ fun ListScreen(
     val entries by viewModel.entries.collectAsState()
     val categoryFilter by viewModel.activeCategoryFilter.collectAsState()
     val activeSortOption by viewModel.activeSortOption.collectAsState()
+    val availableCategories by viewModel.availableCategories.collectAsState()
     var searchText by remember { mutableStateOf("") }
     var pendingDelete by remember { mutableStateOf<TastedDrink?>(null) }
 
@@ -82,7 +83,7 @@ fun ListScreen(
                         modifier = Modifier.fillMaxWidth(),
                     )
 
-                    val filterOptions: List<DrinkCategory?> = listOf(null) + DrinkCategory.entries
+                    val filterOptions: List<String?> = listOf(null) + availableCategories
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         filterOptions.chunked(3).forEach { row ->
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -90,7 +91,7 @@ fun ListScreen(
                                     FilterChip(
                                         selected = categoryFilter == option,
                                         onClick = { viewModel.setCategoryFilter(option) },
-                                        label = { Text(option?.name ?: "ALL") },
+                                        label = { Text(option?.uppercase() ?: "ALL") },
                                     )
                                 }
                             }
@@ -131,7 +132,7 @@ fun ListScreen(
                             .clickable { onEditEntry(entry) },
                     ) {
                         Text(
-                            if (entry.brand != null) "${entry.name} — ${entry.brand} (${entry.category.name})" else "${entry.name} (${entry.category.name})",
+                            if (entry.brand != null) "${entry.name} — ${entry.brand} (${entry.category})" else "${entry.name} (${entry.category})",
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Text("${entry.dateTasted} · ${entry.rating}/5", style = MaterialTheme.typography.bodySmall)

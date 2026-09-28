@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlin.time.Clock
@@ -40,9 +41,12 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     val editingEntry by viewModel.editingEntry.collectAsState()
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
 
+    val availableCategories by viewModel.availableCategories.collectAsState()
+
     var name by remember { mutableStateOf("") }
     var brand by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf(DrinkCategory.WHISKY) }
+    var category by remember { mutableStateOf("WHISKY") }
+    var newCategoryText by remember { mutableStateOf("") }
     var color by remember { mutableStateOf("") }
     var oiliness by remember { mutableStateOf("") }
     var scent by remember { mutableStateOf("") }
@@ -68,7 +72,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
         } else {
             name = ""
             brand = ""
-            category = DrinkCategory.WHISKY
+            category = "WHISKY"
             color = ""
             oiliness = ""
             scent = ""
@@ -112,17 +116,41 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Category", style = MaterialTheme.typography.labelLarge)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        DrinkCategory.entries.chunked(3).forEach { row ->
+                        availableCategories.chunked(3).forEach { row ->
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 row.forEach { entry ->
                                     FilterChip(
                                         selected = category == entry,
                                         onClick = { category = entry },
-                                        label = { Text(entry.name) },
+                                        label = { Text(entry.uppercase()) },
                                     )
                                 }
                             }
                         }
+                    }
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    OutlinedTextField(
+                        value = newCategoryText,
+                        onValueChange = { newCategoryText = it },
+                        label = { Text("Add your own type") },
+                        modifier = Modifier.weight(1f),
+                    )
+                    Button(
+                        onClick = {
+                            val trimmed = newCategoryText.trim()
+                            viewModel.addCustomCategory(trimmed)
+                            category = trimmed
+                            newCategoryText = ""
+                        },
+                        enabled = newCategoryText.isNotBlank(),
+                    ) {
+                        Text("Add")
                     }
                 }
 

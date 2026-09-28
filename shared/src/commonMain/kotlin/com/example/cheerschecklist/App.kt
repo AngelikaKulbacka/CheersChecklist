@@ -14,7 +14,8 @@ import org.koin.compose.koinInject
 fun App() {
     MaterialTheme {
         val repository: TastedDrinkRepository = koinInject()
-        val viewModel: TastingViewModel = viewModel { TastingViewModel(repository) }
+        val categoryRepository: CategoryRepository = koinInject()
+        val viewModel: TastingViewModel = viewModel { TastingViewModel(repository, categoryRepository) }
         val navController = rememberNavController()
 
         NavHost(navController = navController, startDestination = "list") {
