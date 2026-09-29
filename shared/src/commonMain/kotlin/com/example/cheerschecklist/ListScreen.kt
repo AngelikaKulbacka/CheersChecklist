@@ -179,7 +179,7 @@ fun ListScreen(
                     ) {
                         item {
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 Row(
