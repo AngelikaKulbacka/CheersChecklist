@@ -5,16 +5,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +45,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
@@ -136,8 +142,15 @@ fun ListScreen(
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 Scaffold(
                     floatingActionButton = {
-                        FloatingActionButton(onClick = onAddNew) {
-                            Text("+")
+                        FloatingActionButton(
+                            onClick = onAddNew,
+                            shape = CircleShape,
+                            containerColor = lerp(MaterialTheme.colorScheme.primaryContainer, Color.Black, 0.12f),
+                        ) {
+                            Text(
+                                text = "+",
+                                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                            )
                         }
                     },
                 ) { paddingValues ->
@@ -213,6 +226,10 @@ fun ListScreen(
                                 }
                             }
                         }
+
+                        item {
+                            Spacer(modifier = Modifier.height(88.dp))
+                        }
                     }
                 }
 
@@ -223,10 +240,16 @@ fun ListScreen(
                         title = { Text("Delete entry?") },
                         text = { Text("Delete \"${toDelete.name}\"? This can't be undone.") },
                         confirmButton = {
-                            TextButton(onClick = {
-                                viewModel.deleteEntry(toDelete)
-                                pendingDelete = null
-                            }) {
+                            Button(
+                                onClick = {
+                                    viewModel.deleteEntry(toDelete)
+                                    pendingDelete = null
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = MaterialTheme.colorScheme.onError,
+                                ),
+                            ) {
                                 Text("Delete")
                             }
                         },

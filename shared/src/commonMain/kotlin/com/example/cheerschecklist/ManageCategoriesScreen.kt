@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -120,10 +122,16 @@ fun ManageCategoriesScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteCustomCategory(toDeleteCategory)
-                    pendingDeleteCategory = null
-                }) {
+                Button(
+                    onClick = {
+                        viewModel.deleteCustomCategory(toDeleteCategory)
+                        pendingDeleteCategory = null
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError,
+                    ),
+                ) {
                     Text("Delete")
                 }
             },

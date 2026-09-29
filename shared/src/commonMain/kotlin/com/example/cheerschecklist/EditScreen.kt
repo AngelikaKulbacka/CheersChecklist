@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -336,11 +337,17 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             title = { Text("Discard changes?") },
             text = { Text("Are you sure you want to cancel? Your changes won't be saved.") },
             confirmButton = {
-                TextButton(onClick = {
-                    showCancelConfirm = false
-                    viewModel.cancelEditing()
-                    onDone()
-                }) {
+                Button(
+                    onClick = {
+                        showCancelConfirm = false
+                        viewModel.cancelEditing()
+                        onDone()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError,
+                    ),
+                ) {
                     Text("Discard")
                 }
             },
