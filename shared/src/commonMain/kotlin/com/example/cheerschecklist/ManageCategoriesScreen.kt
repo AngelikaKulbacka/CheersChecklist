@@ -31,6 +31,8 @@ fun ManageCategoriesScreen(
     onDone: () -> Unit,
 ) {
     val customCategories by viewModel.customCategories.collectAsState()
+    val language by viewModel.activeLanguage.collectAsState()
+    val strings = stringsFor(language)
     var renamingCategory by remember { mutableStateOf<String?>(null) }
     var renameText by remember { mutableStateOf("") }
     var pendingDeleteCategory by remember { mutableStateOf<String?>(null) }
@@ -38,9 +40,9 @@ fun ManageCategoriesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Manage your types") },
+                title = { Text(strings.manageTypesTitle) },
                 navigationIcon = {
-                    TextButton(onClick = onDone) { Text("Back") }
+                    TextButton(onClick = onDone) { Text(strings.back) }
                 },
             )
         },
@@ -51,7 +53,7 @@ fun ManageCategoriesScreen(
         ) {
             if (customCategories.isEmpty()) {
                 Text(
-                    "You haven't added any custom types yet.",
+                    strings.noCustomTypesYet,
                     style = MaterialTheme.typography.bodyMedium,
                 )
             } else {
@@ -67,10 +69,10 @@ fun ManageCategoriesScreen(
                                 renamingCategory = name
                                 renameText = name
                             }) {
-                                Text("Rename")
+                                Text(strings.rename)
                             }
                             TextButton(onClick = { pendingDeleteCategory = name }) {
-                                Text("Delete")
+                                Text(strings.delete)
                             }
                         }
                     }
@@ -83,12 +85,12 @@ fun ManageCategoriesScreen(
     if (toRename != null) {
         AlertDialog(
             onDismissRequest = { renamingCategory = null },
-            title = { Text("Rename type") },
+            title = { Text(strings.renameTypeTitle) },
             text = {
                 OutlinedTextField(
                     value = renameText,
                     onValueChange = { renameText = it },
-                    label = { Text("Type name") },
+                    label = { Text(strings.typeNameLabel) },
                     singleLine = true,
                 )
             },
@@ -100,12 +102,12 @@ fun ManageCategoriesScreen(
                         renamingCategory = null
                     },
                 ) {
-                    Text("Rename")
+                    Text(strings.rename)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { renamingCategory = null }) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             },
         )
@@ -115,11 +117,9 @@ fun ManageCategoriesScreen(
     if (toDeleteCategory != null) {
         AlertDialog(
             onDismissRequest = { pendingDeleteCategory = null },
-            title = { Text("Delete type?") },
+            title = { Text(strings.deleteTypeTitle) },
             text = {
-                Text(
-                    "Delete \"${toDeleteCategory.uppercase()}\"? Entries using this type will be moved to OTHER.",
-                )
+                Text(strings.deleteTypeText(toDeleteCategory.uppercase()))
             },
             confirmButton = {
                 Button(
@@ -132,12 +132,12 @@ fun ManageCategoriesScreen(
                         contentColor = MaterialTheme.colorScheme.onError,
                     ),
                 ) {
-                    Text("Delete")
+                    Text(strings.delete)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDeleteCategory = null }) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             },
         )

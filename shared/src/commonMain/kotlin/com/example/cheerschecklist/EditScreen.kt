@@ -48,6 +48,8 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
 
     val availableCategories by viewModel.availableCategories.collectAsState()
+    val language by viewModel.activeLanguage.collectAsState()
+    val strings = stringsFor(language)
 
     var name by remember { mutableStateOf("") }
     var brand by remember { mutableStateOf("") }
@@ -112,7 +114,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    if (editingEntry != null) "Edit entry" else "New entry",
+                    if (editingEntry != null) strings.editEntryTitle else strings.newEntryTitle,
                     style = MaterialTheme.typography.headlineMedium,
                 )
 
@@ -122,10 +124,10 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                         name = it
                         if (it.isNotBlank()) nameError = false
                     },
-                    label = { Text("Name") },
+                    label = { Text(strings.nameLabel) },
                     isError = nameError,
                     supportingText = if (nameError) {
-                        { Text("Can't be empty") }
+                        { Text(strings.cantBeEmpty) }
                     } else {
                         null
                     },
@@ -135,7 +137,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                 OutlinedTextField(
                     value = brand,
                     onValueChange = { brand = it },
-                    label = { Text("Brand (optional)") },
+                    label = { Text(strings.brandLabel) },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
@@ -147,7 +149,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                         value = category.uppercase(),
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Category") },
+                        label = { Text(strings.category) },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded)
                         },
@@ -182,10 +184,10 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                             newCategoryText = it
                             if (it.isNotBlank()) newCategoryError = false
                         },
-                        label = { Text("Add your own type") },
+                        label = { Text(strings.addYourOwnType) },
                         isError = newCategoryError,
                         supportingText = if (newCategoryError) {
-                            { Text("Can't be empty") }
+                            { Text(strings.cantBeEmpty) }
                         } else {
                             null
                         },
@@ -203,40 +205,40 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                             }
                         },
                     ) {
-                        Text("Add")
+                        Text(strings.add)
                     }
                 }
 
                 OutlinedTextField(
                     value = color,
                     onValueChange = { color = it },
-                    label = { Text("Color (optional)") },
+                    label = { Text(strings.colorLabel) },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
                 OutlinedTextField(
                     value = oiliness,
                     onValueChange = { oiliness = it },
-                    label = { Text("Oiliness (optional)") },
+                    label = { Text(strings.oilinessLabel) },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
                 OutlinedTextField(
                     value = scent,
                     onValueChange = { scent = it },
-                    label = { Text("Scent (optional)") },
+                    label = { Text(strings.scentLabel) },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
                 OutlinedTextField(
                     value = flavor,
                     onValueChange = { flavor = it },
-                    label = { Text("Flavor (optional)") },
+                    label = { Text(strings.flavorLabel) },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Rating", style = MaterialTheme.typography.labelLarge)
+                    Text(strings.ratingLabel, style = MaterialTheme.typography.labelLarge)
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         (1..5).forEach { star ->
                             FilterChip(
@@ -251,7 +253,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     }
                     if (ratingError) {
                         Text(
-                            "Can't be empty",
+                            strings.cantBeEmpty,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                         )
@@ -262,13 +264,13 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     onClick = { showDatePicker = true },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Date: $dateTasted")
+                    Text(strings.dateLabel(dateTasted.toString()))
                 }
 
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("Notes (optional)") },
+                    label = { Text(strings.notesLabel) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
                 )
@@ -278,7 +280,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     TextButton(onClick = { showCancelConfirm = true }) {
-                        Text("Cancel")
+                        Text(strings.cancel)
                     }
                     Button(
                         onClick = {
@@ -302,7 +304,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(if (editingEntry != null) "Save" else "Add")
+                        Text(if (editingEntry != null) strings.save else strings.add)
                     }
                 }
             }
@@ -318,12 +320,12 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     pickerState.selectedDateMillis?.let { dateTasted = it.toLocalDateFromPickerMillis() }
                     showDatePicker = false
                 }) {
-                    Text("OK")
+                    Text(strings.ok)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             },
         ) {
@@ -334,8 +336,8 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     if (showCancelConfirm) {
         AlertDialog(
             onDismissRequest = { showCancelConfirm = false },
-            title = { Text("Discard changes?") },
-            text = { Text("Are you sure you want to cancel? Your changes won't be saved.") },
+            title = { Text(strings.discardChangesTitle) },
+            text = { Text(strings.discardChangesText) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -348,12 +350,12 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                         contentColor = MaterialTheme.colorScheme.onError,
                     ),
                 ) {
-                    Text("Discard")
+                    Text(strings.discard)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCancelConfirm = false }) {
-                    Text("Keep editing")
+                    Text(strings.keepEditing)
                 }
             },
         )

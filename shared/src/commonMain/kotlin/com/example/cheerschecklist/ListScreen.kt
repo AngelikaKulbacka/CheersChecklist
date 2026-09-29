@@ -66,6 +66,8 @@ fun ListScreen(
     val categoryFilter by viewModel.activeCategoryFilter.collectAsState()
     val activeSortOption by viewModel.activeSortOption.collectAsState()
     val availableCategories by viewModel.availableCategories.collectAsState()
+    val language by viewModel.activeLanguage.collectAsState()
+    val strings = stringsFor(language)
     var searchText by remember { mutableStateOf("") }
     var pendingDelete by remember { mutableStateOf<TastedDrink?>(null) }
     var categoryDropdownExpanded by remember { mutableStateOf(false) }
@@ -83,7 +85,16 @@ fun ListScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text("Filters & sorting", style = MaterialTheme.typography.titleMedium)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(strings.filtersAndSorting, style = MaterialTheme.typography.titleMedium)
+                                TextButton(onClick = { viewModel.toggleLanguage() }) {
+                                    Text(if (language == AppLanguage.ENGLISH) "Polski" else "English")
+                                }
+                            }
 
                             val filterOptions: List<String?> = listOf(null) + availableCategories
                             ExposedDropdownMenuBox(
@@ -91,10 +102,10 @@ fun ListScreen(
                                 onExpandedChange = { categoryDropdownExpanded = it },
                             ) {
                                 OutlinedTextField(
-                                    value = categoryFilter?.uppercase() ?: "ALL",
+                                    value = categoryFilter?.uppercase() ?: strings.all,
                                     onValueChange = {},
                                     readOnly = true,
-                                    label = { Text("Category") },
+                                    label = { Text(strings.category) },
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded)
                                     },
@@ -108,7 +119,7 @@ fun ListScreen(
                                 ) {
                                     filterOptions.forEach { option ->
                                         DropdownMenuItem(
-                                            text = { Text(option?.uppercase() ?: "ALL") },
+                                            text = { Text(option?.uppercase() ?: strings.all) },
                                             onClick = {
                                                 viewModel.setCategoryFilter(option)
                                                 categoryDropdownExpanded = false
@@ -119,17 +130,21 @@ fun ListScreen(
                             }
 
                             Button(onClick = onManageCategories) {
-                                Text("Edit your categories")
+                                Text(strings.manageCategories)
                             }
 
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("Sort by", style = MaterialTheme.typography.labelLarge)
+                                Text(
+                                    text = strings.sortBy,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     SortOption.entries.forEach { option ->
                                         FilterChip(
                                             selected = activeSortOption == option,
                                             onClick = { viewModel.setSortOption(option) },
-                                            label = { Text(sortOptionLabel(option)) },
+                                            label = { Text(sortOptionLabel(option, strings)) },
                                         )
                                     }
                                 }
@@ -172,9 +187,9 @@ fun ListScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Text("Cheers Checklist", style = MaterialTheme.typography.headlineMedium)
+                                    Text(strings.appTitle, style = MaterialTheme.typography.headlineMedium)
                                     TextButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
-                                        Text("☰ Filters")
+                                        Text(strings.filtersButton)
                                     }
                                 }
 
@@ -185,7 +200,7 @@ fun ListScreen(
                                         searchText = it
                                         viewModel.setSearchQuery(it)
                                     },
-                                    label = { Text("Search by name or type") },
+                                    label = { Text(strings.searchLabel) },
                                     singleLine = true,
                                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                                     keyboardActions = KeyboardActions(onSearch = { keyboardController?.hide() }),
@@ -195,7 +210,7 @@ fun ListScreen(
                                 if (entries.isEmpty()) {
                                     val filtering = searchText.isNotBlank() || categoryFilter != null
                                     Text(
-                                        if (filtering) "No matching entries" else "No entries yet — tap + to add one",
+                                        if (filtering) strings.noMatchingEntries else strings.noEntriesYet,
                                         style = MaterialTheme.typography.bodyMedium,
                                     )
                                 }
@@ -222,7 +237,7 @@ fun ListScreen(
                                     }
                                 }
                                 TextButton(onClick = { pendingDelete = entry }) {
-                                    Text("Delete")
+                                    Text(strings.delete)
                                 }
                             }
                         }
@@ -237,8 +252,8 @@ fun ListScreen(
                 if (toDelete != null) {
                     AlertDialog(
                         onDismissRequest = { pendingDelete = null },
-                        title = { Text("Delete entry?") },
-                        text = { Text("Delete \"${toDelete.name}\"? This can't be undone.") },
+                        title = { Text(strings.deleteEntryTitle) },
+                        text = { Text(strings.deleteEntryText(toDelete.name)) },
                         confirmButton = {
                             Button(
                                 onClick = {
@@ -250,12 +265,12 @@ fun ListScreen(
                                     contentColor = MaterialTheme.colorScheme.onError,
                                 ),
                             ) {
-                                Text("Delete")
+                                Text(strings.delete)
                             }
                         },
                         dismissButton = {
                             TextButton(onClick = { pendingDelete = null }) {
-                                Text("Cancel")
+                                Text(strings.cancel)
                             }
                         },
                     )
@@ -265,8 +280,8 @@ fun ListScreen(
     }
 }
 
-private fun sortOptionLabel(option: SortOption): String = when (option) {
-    SortOption.DATE_DESC -> "Newest"
-    SortOption.NAME_ASC -> "Name"
-    SortOption.RATING_DESC -> "Rating"
+private fun sortOptionLabel(option: SortOption, strings: Strings): String = when (option) {
+    SortOption.DATE_DESC -> strings.sortNewest
+    SortOption.NAME_ASC -> strings.sortName
+    SortOption.RATING_DESC -> strings.sortRating
 }

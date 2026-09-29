@@ -20,9 +20,15 @@ class TastingViewModel(
     private val searchQuery = MutableStateFlow("")
     private val categoryFilter = MutableStateFlow<String?>(null)
     private val sortOption = MutableStateFlow(SortOption.DATE_DESC)
+    private val language = MutableStateFlow(AppLanguage.ENGLISH)
 
     val activeCategoryFilter: StateFlow<String?> = categoryFilter.asStateFlow()
     val activeSortOption: StateFlow<SortOption> = sortOption.asStateFlow()
+    val activeLanguage: StateFlow<AppLanguage> = language.asStateFlow()
+
+    fun toggleLanguage() {
+        language.value = if (language.value == AppLanguage.ENGLISH) AppLanguage.POLISH else AppLanguage.ENGLISH
+    }
 
     val customCategories: StateFlow<List<String>> =
         categoryRepository.getCustomCategories()
