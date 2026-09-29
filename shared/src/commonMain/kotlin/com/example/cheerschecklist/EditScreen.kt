@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -59,6 +60,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     var notes by remember { mutableStateOf("") }
     var dateTasted by remember { mutableStateOf(today) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showCancelConfirm by remember { mutableStateOf(false) }
     var categoryDropdownExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(editingEntry) {
@@ -207,7 +209,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         (1..5).forEach { star ->
                             FilterChip(
-                                selected = rating >= star,
+                                selected = rating == star,
                                 onClick = { rating = star },
                                 label = { Text(star.toString()) },
                             )
@@ -234,10 +236,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    TextButton(onClick = {
-                        viewModel.cancelEditing()
-                        onDone()
-                    }) {
+                    TextButton(onClick = { showCancelConfirm = true }) {
                         Text("Cancel")
                     }
                     Button(
@@ -286,5 +285,27 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
         ) {
             DatePicker(state = pickerState)
         }
+    }
+
+    if (showCancelConfirm) {
+        AlertDialog(
+            onDismissRequest = { showCancelConfirm = false },
+            title = { Text("Discard changes?") },
+            text = { Text("Are you sure you want to cancel? Your changes won't be saved.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCancelConfirm = false
+                    viewModel.cancelEditing()
+                    onDone()
+                }) {
+                    Text("Discard")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelConfirm = false }) {
+                    Text("Keep editing")
+                }
+            },
+        )
     }
 }
