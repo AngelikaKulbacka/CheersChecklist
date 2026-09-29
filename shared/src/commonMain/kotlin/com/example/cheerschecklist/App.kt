@@ -30,10 +30,17 @@ fun App() {
                         viewModel.startEditing(entry)
                         navController.navigate("edit")
                     },
+                    onManageCategories = { navController.navigate("categories") },
                 )
             }
             composable("edit") {
                 EditScreen(
+                    viewModel = viewModel,
+                    onDone = { navController.popBackStack() },
+                )
+            }
+            composable("categories") {
+                ManageCategoriesScreen(
                     viewModel = viewModel,
                     onDone = { navController.popBackStack() },
                 )

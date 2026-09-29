@@ -24,6 +24,10 @@ class TastingViewModel(
     val activeCategoryFilter: StateFlow<String?> = categoryFilter.asStateFlow()
     val activeSortOption: StateFlow<SortOption> = sortOption.asStateFlow()
 
+    val customCategories: StateFlow<List<String>> =
+        categoryRepository.getCustomCategories()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val availableCategories: StateFlow<List<String>> =
         categoryRepository.getCustomCategories()
             .map { custom -> BUILT_IN_CATEGORIES + custom }
@@ -51,6 +55,26 @@ class TastingViewModel(
         if (trimmed.isBlank()) return
         if (availableCategories.value.any { it.equals(trimmed, ignoreCase = true) }) return
         viewModelScope.launch { categoryRepository.addCustomCategory(trimmed) }
+    }
+
+    fun renameCustomCategory(oldName: String, newName: String) {
+        val trimmed = newName.trim()
+        if (trimmed.isBlank() || trimmed.equals(oldName, ignoreCase = true)) return
+        if (availableCategories.value.any { it.equals(trimmed, ignoreCase = true) }) return
+        viewModelScope.launch {
+            categoryRepository.addCustomCategory(trimmed)
+            repository.renameCategoryInEntries(oldName, trimmed)
+            categoryRepository.deleteCustomCategory(oldName)
+            if (categoryFilter.value == oldName) categoryFilter.value = trimmed
+        }
+    }
+
+    fun deleteCustomCategory(name: String) {
+        viewModelScope.launch {
+            repository.renameCategoryInEntries(name, "OTHER")
+            categoryRepository.deleteCustomCategory(name)
+            if (categoryFilter.value == name) categoryFilter.value = null
+        }
     }
 
     private val _editingEntry = MutableStateFlow<TastedDrink?>(null)

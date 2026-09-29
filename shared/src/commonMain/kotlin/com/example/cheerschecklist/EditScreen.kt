@@ -12,7 +12,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -55,6 +59,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     var notes by remember { mutableStateOf("") }
     var dateTasted by remember { mutableStateOf(today) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var categoryDropdownExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(editingEntry) {
         val entry = editingEntry
@@ -113,19 +118,34 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                 )
 
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Category", style = MaterialTheme.typography.labelLarge)
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        availableCategories.chunked(3).forEach { row ->
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                row.forEach { entry ->
-                                    FilterChip(
-                                        selected = category == entry,
-                                        onClick = { category = entry },
-                                        label = { Text(entry.uppercase()) },
-                                    )
-                                }
-                            }
+                ExposedDropdownMenuBox(
+                    expanded = categoryDropdownExpanded,
+                    onExpandedChange = { categoryDropdownExpanded = it },
+                ) {
+                    OutlinedTextField(
+                        value = category.uppercase(),
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Category") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded)
+                        },
+                        modifier = Modifier
+                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                            .fillMaxWidth(),
+                    )
+                    ExposedDropdownMenu(
+                        expanded = categoryDropdownExpanded,
+                        onDismissRequest = { categoryDropdownExpanded = false },
+                    ) {
+                        availableCategories.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.uppercase()) },
+                                onClick = {
+                                    category = option
+                                    categoryDropdownExpanded = false
+                                },
+                            )
                         }
                     }
                 }

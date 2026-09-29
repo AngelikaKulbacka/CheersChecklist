@@ -181,6 +181,78 @@ class TastingViewModelTest {
         advanceUntilIdle()
         assertEquals(BUILT_IN_CATEGORIES + listOf("Mead"), viewModel.availableCategories.value)
     }
+
+    @Test
+    fun renameCustomCategory_replacesNameAndUpdatesEntries() = runTest(dispatcher) {
+        val fakeRepository = FakeTastedDrinkRepository()
+        val fakeCategoryRepository = FakeCategoryRepository()
+        val viewModel = TastingViewModel(fakeRepository, fakeCategoryRepository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.customCategories.collect {} }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.entries.collect {} }
+
+        viewModel.addCustomCategory("Mead")
+        advanceUntilIdle()
+        viewModel.saveEntry("Honey Mead", null, "Mead", LocalDate(2026, 9, 18), 5, "")
+        advanceUntilIdle()
+
+        viewModel.renameCustomCategory("Mead", "Honey Wine")
+        advanceUntilIdle()
+
+        assertEquals(listOf("Honey Wine"), viewModel.customCategories.value)
+        assertEquals("Honey Wine", fakeRepository.added.single().category)
+    }
+
+    @Test
+    fun renameCustomCategory_updatesActiveFilterWhenPointingAtOldName() = runTest(dispatcher) {
+        val fakeCategoryRepository = FakeCategoryRepository()
+        val viewModel = TastingViewModel(FakeTastedDrinkRepository(), fakeCategoryRepository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.customCategories.collect {} }
+
+        viewModel.addCustomCategory("Mead")
+        advanceUntilIdle()
+        viewModel.setCategoryFilter("Mead")
+
+        viewModel.renameCustomCategory("Mead", "Honey Wine")
+        advanceUntilIdle()
+
+        assertEquals("Honey Wine", viewModel.activeCategoryFilter.value)
+    }
+
+    @Test
+    fun deleteCustomCategory_reassignsEntriesToOtherAndRemovesFromList() = runTest(dispatcher) {
+        val fakeRepository = FakeTastedDrinkRepository()
+        val fakeCategoryRepository = FakeCategoryRepository()
+        val viewModel = TastingViewModel(fakeRepository, fakeCategoryRepository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.customCategories.collect {} }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.entries.collect {} }
+
+        viewModel.addCustomCategory("Mead")
+        advanceUntilIdle()
+        viewModel.saveEntry("Honey Mead", null, "Mead", LocalDate(2026, 9, 18), 5, "")
+        advanceUntilIdle()
+
+        viewModel.deleteCustomCategory("Mead")
+        advanceUntilIdle()
+
+        assertEquals(emptyList(), viewModel.customCategories.value)
+        assertEquals("OTHER", fakeRepository.added.single().category)
+    }
+
+    @Test
+    fun deleteCustomCategory_clearsActiveFilterWhenPointingAtDeletedName() = runTest(dispatcher) {
+        val fakeCategoryRepository = FakeCategoryRepository()
+        val viewModel = TastingViewModel(FakeTastedDrinkRepository(), fakeCategoryRepository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.customCategories.collect {} }
+
+        viewModel.addCustomCategory("Mead")
+        advanceUntilIdle()
+        viewModel.setCategoryFilter("Mead")
+
+        viewModel.deleteCustomCategory("Mead")
+        advanceUntilIdle()
+
+        assertEquals(null, viewModel.activeCategoryFilter.value)
+    }
 }
 
 private class FakeTastedDrinkRepository : TastedDrinkRepository {
@@ -205,6 +277,13 @@ private class FakeTastedDrinkRepository : TastedDrinkRepository {
         added.removeAll { it.id == drink.id }
         flow.value = added.toList()
     }
+
+    override suspend fun renameCategoryInEntries(oldCategory: String, newCategory: String) {
+        for (i in added.indices) {
+            if (added[i].category == oldCategory) added[i] = added[i].copy(category = newCategory)
+        }
+        flow.value = added.toList()
+    }
 }
 
 private class FakeCategoryRepository : CategoryRepository {
@@ -215,5 +294,9 @@ private class FakeCategoryRepository : CategoryRepository {
     override suspend fun addCustomCategory(name: String) {
         if (flow.value.any { it.equals(name, ignoreCase = true) }) return
         flow.value = flow.value + name
+    }
+
+    override suspend fun deleteCustomCategory(name: String) {
+        flow.value = flow.value.filterNot { it.equals(name, ignoreCase = true) }
     }
 }

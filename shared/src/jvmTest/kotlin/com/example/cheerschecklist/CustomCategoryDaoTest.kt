@@ -48,6 +48,16 @@ class CustomCategoryDaoTest {
     }
 
     @Test
+    fun delete_removesCategoryFromGetAll() = runBlocking {
+        dao.insert(CustomCategory("Mead"))
+        dao.insert(CustomCategory("Sake"))
+
+        dao.delete(CustomCategory("Mead"))
+
+        assertEquals(listOf("Sake"), dao.getAll().first())
+    }
+
+    @Test
     fun repository_addCustomCategoryGoesThroughRealRoom() = runBlocking {
         val repository = RoomCategoryRepository(dao)
 

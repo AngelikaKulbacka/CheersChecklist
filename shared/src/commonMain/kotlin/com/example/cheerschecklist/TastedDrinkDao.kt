@@ -20,4 +20,7 @@ interface TastedDrinkDao {
 
     @Query("SELECT * FROM TastedDrink ORDER BY dateTasted DESC")
     fun getAll(): Flow<List<TastedDrink>>
+
+    @Query("UPDATE TastedDrink SET category = :newCategory WHERE category = :oldCategory")
+    suspend fun renameCategory(oldCategory: String, newCategory: String)
 }

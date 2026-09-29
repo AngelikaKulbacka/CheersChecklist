@@ -147,6 +147,20 @@ class TastedDrinkDaoTest {
     }
 
     @Test
+    fun renameCategory_updatesOnlyMatchingRows() = runBlocking {
+        dao.insert(drink("Lagavulin"))
+        dao.insert(drink("Laphroaig"))
+        dao.insert(drink("Guinness").copy(category = "BEER"))
+
+        dao.renameCategory("WHISKY", "SCOTCH")
+
+        val categories = dao.getAll().first().associate { it.name to it.category }
+        assertEquals("SCOTCH", categories["Lagavulin"])
+        assertEquals("SCOTCH", categories["Laphroaig"])
+        assertEquals("BEER", categories["Guinness"])
+    }
+
+    @Test
     fun repository_addAndGetAllGoThroughRealRoom() = runBlocking {
         val repository = RoomTastedDrinkRepository(dao)
 

@@ -7,6 +7,7 @@ interface TastedDrinkRepository {
     suspend fun add(drink: TastedDrink)
     suspend fun update(drink: TastedDrink)
     suspend fun delete(drink: TastedDrink)
+    suspend fun renameCategoryInEntries(oldCategory: String, newCategory: String)
 }
 
 class RoomTastedDrinkRepository(
@@ -16,4 +17,6 @@ class RoomTastedDrinkRepository(
     override suspend fun add(drink: TastedDrink) = dao.insert(drink)
     override suspend fun update(drink: TastedDrink) = dao.update(drink)
     override suspend fun delete(drink: TastedDrink) = dao.delete(drink)
+    override suspend fun renameCategoryInEntries(oldCategory: String, newCategory: String) =
+        dao.renameCategory(oldCategory, newCategory)
 }

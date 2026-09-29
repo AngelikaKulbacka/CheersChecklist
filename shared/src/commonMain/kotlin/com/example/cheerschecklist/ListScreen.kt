@@ -14,7 +14,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
@@ -42,11 +48,13 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListScreen(
     viewModel: TastingViewModel,
     onAddNew: () -> Unit,
     onEditEntry: (TastedDrink) -> Unit,
+    onManageCategories: () -> Unit,
 ) {
     val entries by viewModel.entries.collectAsState()
     val categoryFilter by viewModel.activeCategoryFilter.collectAsState()
@@ -54,6 +62,7 @@ fun ListScreen(
     val availableCategories by viewModel.availableCategories.collectAsState()
     var searchText by remember { mutableStateOf("") }
     var pendingDelete by remember { mutableStateOf<TastedDrink?>(null) }
+    var categoryDropdownExpanded by remember { mutableStateOf(false) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
@@ -66,23 +75,45 @@ fun ListScreen(
                         Column(
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text("Filters & sorting", style = MaterialTheme.typography.titleMedium)
 
                             val filterOptions: List<String?> = listOf(null) + availableCategories
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("Category", style = MaterialTheme.typography.labelLarge)
-                                filterOptions.chunked(3).forEach { row ->
-                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        row.forEach { option ->
-                                            FilterChip(
-                                                selected = categoryFilter == option,
-                                                onClick = { viewModel.setCategoryFilter(option) },
-                                                label = { Text(option?.uppercase() ?: "ALL") },
-                                            )
-                                        }
+                            ExposedDropdownMenuBox(
+                                expanded = categoryDropdownExpanded,
+                                onExpandedChange = { categoryDropdownExpanded = it },
+                            ) {
+                                OutlinedTextField(
+                                    value = categoryFilter?.uppercase() ?: "ALL",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Category") },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded)
+                                    },
+                                    modifier = Modifier
+                                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                        .fillMaxWidth(),
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = categoryDropdownExpanded,
+                                    onDismissRequest = { categoryDropdownExpanded = false },
+                                ) {
+                                    filterOptions.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option?.uppercase() ?: "ALL") },
+                                            onClick = {
+                                                viewModel.setCategoryFilter(option)
+                                                categoryDropdownExpanded = false
+                                            },
+                                        )
                                     }
                                 }
+                            }
+
+                            Button(onClick = onManageCategories) {
+                                Text("Edit your categories")
                             }
 
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
