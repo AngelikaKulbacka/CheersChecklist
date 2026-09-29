@@ -62,6 +62,9 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showCancelConfirm by remember { mutableStateOf(false) }
     var categoryDropdownExpanded by remember { mutableStateOf(false) }
+    var nameError by remember { mutableStateOf(false) }
+    var ratingError by remember { mutableStateOf(false) }
+    var newCategoryError by remember { mutableStateOf(false) }
 
     LaunchedEffect(editingEntry) {
         val entry = editingEntry
@@ -76,6 +79,9 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             rating = entry.rating
             notes = entry.notes
             dateTasted = entry.dateTasted
+            nameError = false
+            ratingError = false
+            newCategoryError = false
         } else {
             name = ""
             brand = ""
@@ -87,6 +93,9 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             rating = 0
             notes = ""
             dateTasted = today
+            nameError = false
+            ratingError = false
+            newCategoryError = false
         }
     }
 
@@ -108,8 +117,17 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
 
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = {
+                        name = it
+                        if (it.isNotBlank()) nameError = false
+                    },
                     label = { Text("Name") },
+                    isError = nameError,
+                    supportingText = if (nameError) {
+                        { Text("Can't be empty") }
+                    } else {
+                        null
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 )
 
@@ -159,18 +177,30 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                 ) {
                     OutlinedTextField(
                         value = newCategoryText,
-                        onValueChange = { newCategoryText = it },
+                        onValueChange = {
+                            newCategoryText = it
+                            if (it.isNotBlank()) newCategoryError = false
+                        },
                         label = { Text("Add your own type") },
+                        isError = newCategoryError,
+                        supportingText = if (newCategoryError) {
+                            { Text("Can't be empty") }
+                        } else {
+                            null
+                        },
                         modifier = Modifier.weight(1f),
                     )
                     Button(
                         onClick = {
                             val trimmed = newCategoryText.trim()
-                            viewModel.addCustomCategory(trimmed)
-                            category = trimmed
-                            newCategoryText = ""
+                            if (trimmed.isBlank()) {
+                                newCategoryError = true
+                            } else {
+                                viewModel.addCustomCategory(trimmed)
+                                category = trimmed
+                                newCategoryText = ""
+                            }
                         },
-                        enabled = newCategoryText.isNotBlank(),
                     ) {
                         Text("Add")
                     }
@@ -210,10 +240,20 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                         (1..5).forEach { star ->
                             FilterChip(
                                 selected = rating == star,
-                                onClick = { rating = star },
+                                onClick = {
+                                    rating = star
+                                    ratingError = false
+                                },
                                 label = { Text(star.toString()) },
                             )
                         }
+                    }
+                    if (ratingError) {
+                        Text(
+                            "Can't be empty",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
                     }
                 }
 
@@ -227,7 +267,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("Notes") },
+                    label = { Text("Notes (optional)") },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
                 )
@@ -241,21 +281,24 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     }
                     Button(
                         onClick = {
-                            viewModel.saveEntry(
-                                name = name,
-                                brand = brand.trim().ifBlank { null },
-                                category = category,
-                                dateTasted = dateTasted,
-                                rating = rating,
-                                notes = notes,
-                                color = color.trim().ifBlank { null },
-                                oiliness = oiliness.trim().ifBlank { null },
-                                scent = scent.trim().ifBlank { null },
-                                flavor = flavor.trim().ifBlank { null },
-                            )
-                            onDone()
+                            nameError = name.isBlank()
+                            ratingError = rating <= 0
+                            if (!nameError && !ratingError) {
+                                viewModel.saveEntry(
+                                    name = name,
+                                    brand = brand.trim().ifBlank { null },
+                                    category = category,
+                                    dateTasted = dateTasted,
+                                    rating = rating,
+                                    notes = notes,
+                                    color = color.trim().ifBlank { null },
+                                    oiliness = oiliness.trim().ifBlank { null },
+                                    scent = scent.trim().ifBlank { null },
+                                    flavor = flavor.trim().ifBlank { null },
+                                )
+                                onDone()
+                            }
                         },
-                        enabled = name.isNotBlank() && rating > 0,
                         modifier = Modifier.weight(1f),
                     ) {
                         Text(if (editingEntry != null) "Save" else "Add")
