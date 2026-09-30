@@ -2,7 +2,9 @@ package com.example.cheerschecklist
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,7 +41,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlinx.datetime.TimeZone
@@ -74,10 +80,12 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     var newCategoryError by remember { mutableStateOf(false) }
     var photoPath by remember { mutableStateOf<String?>(null) }
     var photoMenuExpanded by remember { mutableStateOf(false) }
+    var showFullScreenPhoto by remember { mutableStateOf(false) }
     val launchPhotoPicker = rememberPhotoPicker { newPath ->
         photoPath?.let { deletePhotoFile(it) }
         photoPath = newPath
     }
+    val photoBitmap = remember(photoPath) { photoPath?.let { decodeImageBitmap(it) } }
 
     LaunchedEffect(editingEntry) {
         val entry = editingEntry
@@ -330,9 +338,12 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val bitmap = remember(photoPath) { photoPath?.let { decodeImageBitmap(it) } }
-                        if (bitmap != null) {
-                            Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(96.dp))
+                        if (photoBitmap != null) {
+                            Image(
+                                bitmap = photoBitmap,
+                                contentDescription = null,
+                                modifier = Modifier.size(96.dp).clickable { showFullScreenPhoto = true },
+                            )
                         }
                         Button(onClick = {
                             photoPath?.let { deletePhotoFile(it) }
@@ -436,5 +447,27 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                 }
             },
         )
+    }
+
+    if (showFullScreenPhoto && photoBitmap != null) {
+        Dialog(
+            onDismissRequest = { showFullScreenPhoto = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .clickable { showFullScreenPhoto = false },
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    bitmap = photoBitmap,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
     }
 }
