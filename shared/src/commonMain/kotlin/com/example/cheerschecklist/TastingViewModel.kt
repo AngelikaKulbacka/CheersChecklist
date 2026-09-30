@@ -36,8 +36,12 @@ class TastingViewModel(
 
     val availableCategories: StateFlow<List<String>> =
         categoryRepository.getCustomCategories()
-            .map { custom -> BUILT_IN_CATEGORIES + custom }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BUILT_IN_CATEGORIES)
+            .map { custom -> (BUILT_IN_CATEGORIES + custom).sortedBy { it.uppercase() } }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                BUILT_IN_CATEGORIES.sortedBy { it.uppercase() },
+            )
 
     val entries: StateFlow<List<TastedDrink>> =
         combine(repository.getAll(), searchQuery, categoryFilter, sortOption) { all, query, category, sort ->
@@ -77,7 +81,7 @@ class TastingViewModel(
 
     fun deleteCustomCategory(name: String) {
         viewModelScope.launch {
-            repository.renameCategoryInEntries(name, "OTHER")
+            repository.renameCategoryInEntries(name, "BEER")
             categoryRepository.deleteCustomCategory(name)
             if (categoryFilter.value == name) categoryFilter.value = null
         }

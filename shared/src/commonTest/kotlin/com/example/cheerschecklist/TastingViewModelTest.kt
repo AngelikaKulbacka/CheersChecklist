@@ -162,7 +162,10 @@ class TastingViewModelTest {
         viewModel.addCustomCategory("Mead")
         advanceUntilIdle()
 
-        assertEquals(BUILT_IN_CATEGORIES + listOf("Mead"), viewModel.availableCategories.value)
+        assertEquals(
+            (BUILT_IN_CATEGORIES + listOf("Mead")).sortedBy { it.uppercase() },
+            viewModel.availableCategories.value,
+        )
     }
 
     @Test
@@ -173,13 +176,16 @@ class TastingViewModelTest {
 
         viewModel.addCustomCategory("whisky")
         advanceUntilIdle()
-        assertEquals(BUILT_IN_CATEGORIES, viewModel.availableCategories.value)
+        assertEquals(BUILT_IN_CATEGORIES.sortedBy { it.uppercase() }, viewModel.availableCategories.value)
 
         viewModel.addCustomCategory("Mead")
         advanceUntilIdle()
         viewModel.addCustomCategory("mead")
         advanceUntilIdle()
-        assertEquals(BUILT_IN_CATEGORIES + listOf("Mead"), viewModel.availableCategories.value)
+        assertEquals(
+            (BUILT_IN_CATEGORIES + listOf("Mead")).sortedBy { it.uppercase() },
+            viewModel.availableCategories.value,
+        )
     }
 
     @Test
@@ -219,7 +225,7 @@ class TastingViewModelTest {
     }
 
     @Test
-    fun deleteCustomCategory_reassignsEntriesToOtherAndRemovesFromList() = runTest(dispatcher) {
+    fun deleteCustomCategory_reassignsEntriesToBeerAndRemovesFromList() = runTest(dispatcher) {
         val fakeRepository = FakeTastedDrinkRepository()
         val fakeCategoryRepository = FakeCategoryRepository()
         val viewModel = TastingViewModel(fakeRepository, fakeCategoryRepository)
@@ -235,7 +241,7 @@ class TastingViewModelTest {
         advanceUntilIdle()
 
         assertEquals(emptyList(), viewModel.customCategories.value)
-        assertEquals("OTHER", fakeRepository.added.single().category)
+        assertEquals("BEER", fakeRepository.added.single().category)
     }
 
     @Test

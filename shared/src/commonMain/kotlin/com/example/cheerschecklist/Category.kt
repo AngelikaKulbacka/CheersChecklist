@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-val BUILT_IN_CATEGORIES = listOf("WHISKY", "WINE", "BEER", "COCKTAIL", "OTHER")
+val BUILT_IN_CATEGORIES = listOf("WHISKY", "WINE", "BEER", "COCKTAIL")
 
 @Entity
 data class CustomCategory(

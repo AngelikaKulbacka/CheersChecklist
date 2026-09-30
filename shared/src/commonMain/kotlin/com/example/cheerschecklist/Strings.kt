@@ -98,7 +98,7 @@ private val EnglishStrings = Strings(
     renameTypeTitle = "Rename type",
     typeNameLabel = "Type name",
     deleteTypeTitle = "Delete type?",
-    deleteTypeText = { name -> "Delete \"$name\"? Entries using this type will be moved to OTHER." },
+    deleteTypeText = { name -> "Delete \"$name\"? Entries using this type will be moved to BEER." },
 )
 
 private val PolishStrings = Strings(
@@ -146,7 +146,7 @@ private val PolishStrings = Strings(
     renameTypeTitle = "Zmień nazwę typu",
     typeNameLabel = "Nazwa typu",
     deleteTypeTitle = "Usunąć typ?",
-    deleteTypeText = { name -> "Usunąć \"$name\"? Wpisy z tym typem zostaną przeniesione do OTHER." },
+    deleteTypeText = { name -> "Usunąć \"$name\"? Wpisy z tym typem zostaną przeniesione do BEER." },
 )
 
 fun stringsFor(language: AppLanguage): Strings = when (language) {

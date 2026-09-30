@@ -20,6 +20,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -53,7 +54,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
 
     var name by remember { mutableStateOf("") }
     var brand by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("WHISKY") }
+    var category by remember { mutableStateOf(availableCategories.firstOrNull() ?: "") }
     var newCategoryText by remember { mutableStateOf("") }
     var color by remember { mutableStateOf("") }
     var oiliness by remember { mutableStateOf("") }
@@ -88,7 +89,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
         } else {
             name = ""
             brand = ""
-            category = "WHISKY"
+            category = availableCategories.firstOrNull() ?: ""
             color = ""
             oiliness = ""
             scent = ""
@@ -238,7 +239,11 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(strings.ratingLabel, style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        strings.ratingLabel,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (ratingError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         (1..5).forEach { star ->
                             FilterChip(
@@ -248,6 +253,21 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                                     ratingError = false
                                 },
                                 label = { Text(star.toString()) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                ),
+                                border = if (ratingError) {
+                                    FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = rating == star,
+                                        borderColor = MaterialTheme.colorScheme.error,
+                                        selectedBorderColor = MaterialTheme.colorScheme.error,
+                                        borderWidth = 1.5.dp,
+                                    )
+                                } else {
+                                    FilterChipDefaults.filterChipBorder(enabled = true, selected = rating == star)
+                                },
                             )
                         }
                     }
