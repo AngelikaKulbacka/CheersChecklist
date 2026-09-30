@@ -17,4 +17,5 @@ data class TastedDrink(
     val dateTasted: LocalDate,
     val rating: Int,
     val notes: String = "",
+    val photoPath: String? = null,
 )

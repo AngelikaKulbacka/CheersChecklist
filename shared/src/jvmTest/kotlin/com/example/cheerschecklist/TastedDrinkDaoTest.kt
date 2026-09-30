@@ -65,6 +65,7 @@ class TastedDrinkDaoTest {
                 dateTasted = LocalDate(2026, 3, 15),
                 rating = 5,
                 notes = "Buttery",
+                photoPath = "/data/photos/chardonnay.jpg",
             ),
         )
 
@@ -81,6 +82,7 @@ class TastedDrinkDaoTest {
         assertEquals(LocalDate(2026, 3, 15), stored.dateTasted)
         assertEquals(5, stored.rating)
         assertEquals("Buttery", stored.notes)
+        assertEquals("/data/photos/chardonnay.jpg", stored.photoPath)
     }
 
     @Test
@@ -93,6 +95,7 @@ class TastedDrinkDaoTest {
         assertEquals(null, stored.oiliness)
         assertEquals(null, stored.scent)
         assertEquals(null, stored.flavor)
+        assertEquals(null, stored.photoPath)
     }
 
     @Test

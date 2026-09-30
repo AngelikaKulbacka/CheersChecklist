@@ -1,5 +1,6 @@
 package com.example.cheerschecklist
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,12 +9,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -69,6 +72,12 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     var nameError by remember { mutableStateOf(false) }
     var ratingError by remember { mutableStateOf(false) }
     var newCategoryError by remember { mutableStateOf(false) }
+    var photoPath by remember { mutableStateOf<String?>(null) }
+    var photoMenuExpanded by remember { mutableStateOf(false) }
+    val launchPhotoPicker = rememberPhotoPicker { newPath ->
+        photoPath?.let { deletePhotoFile(it) }
+        photoPath = newPath
+    }
 
     LaunchedEffect(editingEntry) {
         val entry = editingEntry
@@ -83,6 +92,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             rating = entry.rating
             notes = entry.notes
             dateTasted = entry.dateTasted
+            photoPath = entry.photoPath
             nameError = false
             ratingError = false
             newCategoryError = false
@@ -97,6 +107,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             rating = 0
             notes = ""
             dateTasted = today
+            photoPath = null
             nameError = false
             ratingError = false
             newCategoryError = false
@@ -287,6 +298,51 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     Text(strings.dateLabel(dateTasted.toString()))
                 }
 
+                if (photoPath == null) {
+                    Row {
+                        OutlinedButton(onClick = { photoMenuExpanded = true }) {
+                            Text(strings.addPhoto)
+                        }
+                        DropdownMenu(
+                            expanded = photoMenuExpanded,
+                            onDismissRequest = { photoMenuExpanded = false },
+                        ) {
+                            if (supportsCameraCapture) {
+                                DropdownMenuItem(
+                                    text = { Text(strings.takePhoto) },
+                                    onClick = {
+                                        photoMenuExpanded = false
+                                        launchPhotoPicker(PhotoSource.CAMERA)
+                                    },
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text(strings.chooseFromGallery) },
+                                onClick = {
+                                    photoMenuExpanded = false
+                                    launchPhotoPicker(PhotoSource.GALLERY)
+                                },
+                            )
+                        }
+                    }
+                } else {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val bitmap = remember(photoPath) { photoPath?.let { decodeImageBitmap(it) } }
+                        if (bitmap != null) {
+                            Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(96.dp))
+                        }
+                        Button(onClick = {
+                            photoPath?.let { deletePhotoFile(it) }
+                            photoPath = null
+                        }) {
+                            Text(strings.removePhoto)
+                        }
+                    }
+                }
+
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
@@ -318,6 +374,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                                     oiliness = oiliness.trim().ifBlank { null },
                                     scent = scent.trim().ifBlank { null },
                                     flavor = flavor.trim().ifBlank { null },
+                                    photoPath = photoPath,
                                 )
                                 onDone()
                             }

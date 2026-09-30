@@ -84,4 +84,22 @@ class DatabaseMigrationTest {
         }
         migrated.close()
     }
+
+    @Test
+    fun migrate4To5_preservesExistingRowAndAddsPhotoPathColumn() {
+        val v4 = helper.createDatabase(4)
+        v4.execSQL(
+            "INSERT INTO TastedDrink (id, name, category, dateTasted, rating, notes) " +
+                "VALUES (1, 'Aberlour 12', 'WHISKY', '2026-09-18', 5, '')",
+        )
+        v4.close()
+
+        val migrated = helper.runMigrationsAndValidate(5, listOf(MIGRATION_4_5))
+        migrated.prepare("SELECT name, photoPath FROM TastedDrink WHERE id = 1").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("Aberlour 12", stmt.getText(0))
+            assertTrue(stmt.isNull(1))
+        }
+        migrated.close()
+    }
 }

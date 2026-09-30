@@ -51,6 +51,10 @@ class Strings(
     val typeNameLabel: String,
     val deleteTypeTitle: String,
     val deleteTypeText: (String) -> String,
+    val addPhoto: String,
+    val takePhoto: String,
+    val chooseFromGallery: String,
+    val removePhoto: String,
 )
 
 private val EnglishStrings = Strings(
@@ -99,6 +103,10 @@ private val EnglishStrings = Strings(
     typeNameLabel = "Type name",
     deleteTypeTitle = "Delete type?",
     deleteTypeText = { name -> "Delete \"$name\"? Entries using this type will be moved to BEER." },
+    addPhoto = "Add photo",
+    takePhoto = "Take photo",
+    chooseFromGallery = "Choose from gallery",
+    removePhoto = "Remove",
 )
 
 private val PolishStrings = Strings(
@@ -147,6 +155,10 @@ private val PolishStrings = Strings(
     typeNameLabel = "Nazwa typu",
     deleteTypeTitle = "Usunąć typ?",
     deleteTypeText = { name -> "Usunąć \"$name\"? Wpisy z tym typem zostaną przeniesione do BEER." },
+    addPhoto = "Dodaj zdjęcie",
+    takePhoto = "Zrób zdjęcie",
+    chooseFromGallery = "Wybierz z galerii",
+    removePhoto = "Usuń",
 )
 
 fun stringsFor(language: AppLanguage): Strings = when (language) {

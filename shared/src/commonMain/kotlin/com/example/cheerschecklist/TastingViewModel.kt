@@ -109,6 +109,7 @@ class TastingViewModel(
         oiliness: String? = null,
         scent: String? = null,
         flavor: String? = null,
+        photoPath: String? = null,
     ) {
         val editing = _editingEntry.value
         viewModelScope.launch {
@@ -117,7 +118,7 @@ class TastingViewModel(
                     editing.copy(
                         name = name, brand = brand, category = category,
                         color = color, oiliness = oiliness, scent = scent, flavor = flavor,
-                        dateTasted = dateTasted, rating = rating, notes = notes,
+                        dateTasted = dateTasted, rating = rating, notes = notes, photoPath = photoPath,
                     ),
                 )
             } else {
@@ -125,7 +126,7 @@ class TastingViewModel(
                     TastedDrink(
                         name = name, brand = brand, category = category,
                         color = color, oiliness = oiliness, scent = scent, flavor = flavor,
-                        dateTasted = dateTasted, rating = rating, notes = notes,
+                        dateTasted = dateTasted, rating = rating, notes = notes, photoPath = photoPath,
                     ),
                 )
             }
@@ -136,6 +137,7 @@ class TastingViewModel(
     fun deleteEntry(drink: TastedDrink) {
         viewModelScope.launch {
             repository.delete(drink)
+            drink.photoPath?.let { deletePhotoFile(it) }
             if (_editingEntry.value?.id == drink.id) _editingEntry.value = null
         }
     }
