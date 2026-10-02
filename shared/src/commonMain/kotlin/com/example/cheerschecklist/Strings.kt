@@ -55,6 +55,8 @@ class Strings(
     val takePhoto: String,
     val chooseFromGallery: String,
     val removePhoto: String,
+    val removePhotoTitle: String,
+    val removePhotoText: String,
 )
 
 private val EnglishStrings = Strings(
@@ -107,6 +109,8 @@ private val EnglishStrings = Strings(
     takePhoto = "Take photo",
     chooseFromGallery = "Choose from gallery",
     removePhoto = "Remove",
+    removePhotoTitle = "Remove photo?",
+    removePhotoText = "Are you sure you want to remove this photo?",
 )
 
 private val PolishStrings = Strings(
@@ -159,6 +163,8 @@ private val PolishStrings = Strings(
     takePhoto = "Zrób zdjęcie",
     chooseFromGallery = "Wybierz z galerii",
     removePhoto = "Usuń",
+    removePhotoTitle = "Usunąć zdjęcie?",
+    removePhotoText = "Czy na pewno chcesz usunąć to zdjęcie?",
 )
 
 fun stringsFor(language: AppLanguage): Strings = when (language) {

@@ -33,13 +33,15 @@ fun App() {
                     viewModel = viewModel,
                     onAddNew = {
                         viewModel.cancelEditing()
-                        navController.navigate("edit")
+                        navController.navigate("edit") { launchSingleTop = true }
                     },
                     onEditEntry = { entry ->
                         viewModel.startEditing(entry)
-                        navController.navigate("edit")
+                        navController.navigate("edit") { launchSingleTop = true }
                     },
-                    onManageCategories = { navController.navigate("categories") },
+                    onManageCategories = {
+                        navController.navigate("categories") { launchSingleTop = true }
+                    },
                 )
             }
             composable("edit") {

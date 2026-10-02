@@ -79,13 +79,38 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
     var ratingError by remember { mutableStateOf(false) }
     var newCategoryError by remember { mutableStateOf(false) }
     var photoPath by remember { mutableStateOf<String?>(null) }
+    var originalPhotoPath by remember { mutableStateOf<String?>(null) }
+    var originalName by remember { mutableStateOf("") }
+    var originalBrand by remember { mutableStateOf("") }
+    var originalCategory by remember { mutableStateOf("") }
+    var originalColor by remember { mutableStateOf("") }
+    var originalOiliness by remember { mutableStateOf("") }
+    var originalScent by remember { mutableStateOf("") }
+    var originalFlavor by remember { mutableStateOf("") }
+    var originalRating by remember { mutableStateOf(0) }
+    var originalNotes by remember { mutableStateOf("") }
+    var originalDateTasted by remember { mutableStateOf(today) }
     var photoMenuExpanded by remember { mutableStateOf(false) }
     var showFullScreenPhoto by remember { mutableStateOf(false) }
+    var isSaving by remember { mutableStateOf(false) }
+    var showRemovePhotoConfirm by remember { mutableStateOf(false) }
     val launchPhotoPicker = rememberPhotoPicker { newPath ->
-        photoPath?.let { deletePhotoFile(it) }
+        if (photoPath != originalPhotoPath) photoPath?.let { deletePhotoFile(it) }
         photoPath = newPath
     }
     val photoBitmap = remember(photoPath) { photoPath?.let { decodeImageBitmap(it) } }
+
+    val hasUnsavedChanges = name != originalName ||
+        brand != originalBrand ||
+        category != originalCategory ||
+        color != originalColor ||
+        oiliness != originalOiliness ||
+        scent != originalScent ||
+        flavor != originalFlavor ||
+        rating != originalRating ||
+        notes != originalNotes ||
+        dateTasted != originalDateTasted ||
+        photoPath != originalPhotoPath
 
     LaunchedEffect(editingEntry) {
         val entry = editingEntry
@@ -101,9 +126,22 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             notes = entry.notes
             dateTasted = entry.dateTasted
             photoPath = entry.photoPath
+            originalPhotoPath = entry.photoPath
+            originalName = entry.name
+            originalBrand = entry.brand ?: ""
+            originalCategory = entry.category
+            originalColor = entry.color ?: ""
+            originalOiliness = entry.oiliness ?: ""
+            originalScent = entry.scent ?: ""
+            originalFlavor = entry.flavor ?: ""
+            originalRating = entry.rating
+            originalNotes = entry.notes
+            originalDateTasted = entry.dateTasted
             nameError = false
             ratingError = false
             newCategoryError = false
+            showRemovePhotoConfirm = false
+            isSaving = false
         } else {
             name = ""
             brand = ""
@@ -116,9 +154,22 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             notes = ""
             dateTasted = today
             photoPath = null
+            originalPhotoPath = null
+            originalName = ""
+            originalBrand = ""
+            originalCategory = category
+            originalColor = ""
+            originalOiliness = ""
+            originalScent = ""
+            originalFlavor = ""
+            originalRating = 0
+            originalNotes = ""
+            originalDateTasted = today
             nameError = false
             ratingError = false
             newCategoryError = false
+            showRemovePhotoConfirm = false
+            isSaving = false
         }
     }
 
@@ -345,10 +396,7 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                                 modifier = Modifier.size(96.dp).clickable { showFullScreenPhoto = true },
                             )
                         }
-                        Button(onClick = {
-                            photoPath?.let { deletePhotoFile(it) }
-                            photoPath = null
-                        }) {
+                        Button(onClick = { showRemovePhotoConfirm = true }) {
                             Text(strings.removePhoto)
                         }
                     }
@@ -366,14 +414,23 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    TextButton(onClick = { showCancelConfirm = true }) {
+                    TextButton(onClick = {
+                        if (hasUnsavedChanges) {
+                            showCancelConfirm = true
+                        } else {
+                            viewModel.cancelEditing()
+                            onDone()
+                        }
+                    }) {
                         Text(strings.cancel)
                     }
                     Button(
                         onClick = {
+                            if (isSaving) return@Button
                             nameError = name.isBlank()
                             ratingError = rating <= 0
                             if (!nameError && !ratingError) {
+                                isSaving = true
                                 viewModel.saveEntry(
                                     name = name,
                                     brand = brand.trim().ifBlank { null },
@@ -387,9 +444,14 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                                     flavor = flavor.trim().ifBlank { null },
                                     photoPath = photoPath,
                                 )
+                                val oldPhotoPath = originalPhotoPath
+                                if (oldPhotoPath != null && oldPhotoPath != photoPath) {
+                                    deletePhotoFile(oldPhotoPath)
+                                }
                                 onDone()
                             }
                         },
+                        enabled = !isSaving,
                         modifier = Modifier.weight(1f),
                     ) {
                         Text(if (editingEntry != null) strings.save else strings.add)
@@ -430,6 +492,10 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
                 Button(
                     onClick = {
                         showCancelConfirm = false
+                        val unsavedPhotoPath = photoPath
+                        if (unsavedPhotoPath != null && unsavedPhotoPath != originalPhotoPath) {
+                            deletePhotoFile(unsavedPhotoPath)
+                        }
                         viewModel.cancelEditing()
                         onDone()
                     },
@@ -444,6 +510,34 @@ fun EditScreen(viewModel: TastingViewModel, onDone: () -> Unit) {
             dismissButton = {
                 TextButton(onClick = { showCancelConfirm = false }) {
                     Text(strings.keepEditing)
+                }
+            },
+        )
+    }
+
+    if (showRemovePhotoConfirm) {
+        AlertDialog(
+            onDismissRequest = { showRemovePhotoConfirm = false },
+            title = { Text(strings.removePhotoTitle) },
+            text = { Text(strings.removePhotoText) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (photoPath != originalPhotoPath) photoPath?.let { deletePhotoFile(it) }
+                        photoPath = null
+                        showRemovePhotoConfirm = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError,
+                    ),
+                ) {
+                    Text(strings.removePhoto)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRemovePhotoConfirm = false }) {
+                    Text(strings.cancel)
                 }
             },
         )
